@@ -116,23 +116,9 @@ class blastHit:
 		 self.sid, self.pid, self.alen, self.m, self.g, self.qstart,\
 		 self.qend, self.sstart, self.send, self.ev, self.bs)
 
-class PierRepeatElement(object):
-	
-	def storePIERAnnotationsAsDict():
-		for seq in SeqIO.parse('pier-1.2.fa', 'fasta'):
-			(seqID, annotation) = getSeqIdAndAnnotation(seq.description)
-			annotationDict[seqID] = annotation
-		return annotationDict
-
-	annotationDict = storePIERAnnotationsAsDict()
-
-	def getSeqIdAndAnnotation(header):
-		seqID = header.id
-		annotation = header.description.split('\t')[1]
-		return (seqID, annotation)
-
-	def __init__(self, string):
-		annotation = annotationDict[string]
+class PierRepeat(object):
+	# Annotation examples: "Gypsy", "LTR", "Class II", "L1"
+	def __init__(self, annotation):
 		self.CLASS = determineClass(annotation)
 		self.ORDER = determineOrder(annotation)
 		self.SUPER = determineSuper(annotation)
