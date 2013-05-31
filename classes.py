@@ -12,21 +12,21 @@ class trfHit():
 	def __init__(self, Data=[]):
 		self.seq_name = Data[0]
 		self.start = int(Data[1]) #Intrices of the repeat relative to the start of the sequence 
-       		self.end = int(Data[2])
-       		self.period = int(Data[3])#Period size of the repeat
-       		self.copy_num = float(Data[4])#Number of copies aligned with the consensus pattern
-       		self.size_of_copy = int(Data[5])#Size of consensus pattern (may differ slightly from the period size)
-       		self.percent_matches = float(Data[6])#Percent of matches between adjacent copies overall
-       		self.percent_indels = float(Data[7])#Percent of indels between adjacent copies overall
-       		self.score = int(Data[8])#Alignment score
-       		self.a = float(Data[9])#Percent composition for each of the four nucleotides
-       		self.c = float(Data[10])
-       		self.g = float(Data[11])
-       		self.t = float(Data[12])
-       		self.entropy = float(Data[13])#Entropy measure based on percent composition
-       		self.sequence = Data[14]#The repeat motif itself
-       		self.length = self.end - self.start#Alignment length
-  		            
+			self.end = int(Data[2])
+			self.period = int(Data[3])#Period size of the repeat
+			self.copy_num = float(Data[4])#Number of copies aligned with the consensus pattern
+			self.size_of_copy = int(Data[5])#Size of consensus pattern (may differ slightly from the period size)
+			self.percent_matches = float(Data[6])#Percent of matches between adjacent copies overall
+			self.percent_indels = float(Data[7])#Percent of indels between adjacent copies overall
+			self.score = int(Data[8])#Alignment score
+			self.a = float(Data[9])#Percent composition for each of the four nucleotides
+			self.c = float(Data[10])
+			self.g = float(Data[11])
+			self.t = float(Data[12])
+			self.entropy = float(Data[13])#Entropy measure based on percent composition
+			self.sequence = Data[14]#The repeat motif itself
+			self.length = self.end - self.start#Alignment length
+					
 	def __str__(self): 
 		#for printing in mysql format
 		return "'" + str(self.seq_name) + "'," + str(self.start) + "," + str(self.end) + ","	+ str(self.period) + "," + str(self.copy_num)+ ",'" + str(self.sequence)+ "'," + str(self.length)
@@ -56,8 +56,8 @@ class censorRepeat(object):# (object) allows for type checking, will return cens
 	def __init__(self,Data = []):
 		self.seq = Data[0]
 		self.sstart = int(Data[1]) #Indices of the repeat relative to the start of the sequence. 
-       		self.send = int(Data[2])
-       		self.name = Data[3]
+			self.send = int(Data[2])
+			self.name = Data[3]
 		self.rstart = int(Data[4])
 		self.rend = int(Data[5])
 		self.orientation = Data[6]
@@ -114,4 +114,65 @@ class blastHit:
 		 {:d} {:d} {:d} {:f} {:f}\n'.format(self.qid,\
 		 self.sid, self.pid, self.alen, self.m, self.g, self.qstart,\
 		 self.qend, self.sstart, self.send, self.ev, self.bs)
+
+class PierRepeatElement(object):
+	annotationDict = storePIERAnnotationsAsDict()
+
+	def storePIERAnnotationsAsDict():
+	annotationDict = {}
+	for seq in SeqIO.parse('pier-1.2.fa', 'fasta'):
+		(seqID, annotation) = getSeqIdAndAnnotation(seq.description)
+		annotationDict[seqID] = annotation
+	return annotationDict
+
+	def getSeqIdAndAnnotation(header):
+		seqID = header.id
+		annotation = header.description.split('\t')[1]
+		return (seqID, annotation)
+
+	def __init__(self, string):
+		annotation = annotationDict[string]
+		self.CLASS = determineClass(annotation)
+		self.ORDER = determineOrder(annotation)
+		self.SUPER = determineSuper(annotation)
+
+	def determineClass(annotation):
+		if annotation in ['Gypsy', 'Copia', 'LTR', 'Class I', 'Penelope', 'LINE', 'SINE', 'SINE1/7SL', 'SINE2/tRNA', 'Gymny', 'L1', 'Non-LTR Retrotransposon', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'RTE']:
+			return 'I'
+		else if annotation in ['Class II', 'Helitron', 'DIR', 'DIRS', 'P', 'Maverick', 'hAT', 'TIR', 'Mariner/Tc1', 'Harbinger', 'MuDR', 'EnSpm']:
+			return 'II'
+		else:
+			return 'Uncategorized'
+
+	def determineOrder(annotation):
+		if annotation in ['Gypsy', 'Copia', 'LTR', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'Gymny']:
+			return 'LTR'
+		else if annotation in ['LINE', 'L1', 'RTE']:
+			return 'LINE'
+		else if annotation in ['SINE', 'SINE1/7SL', 'SINE2/tRNA']:
+			return 'SINE'
+		else if annotation in ['hAT', 'P', 'Mariner/Tc1', 'Harbinger', 'MuDR', 'TIR']:
+			return 'TIR'
+		else if annotation in ['DIR', 'DIRS']:
+			return 'DIRS'
+		else if annotation == 'EnSpm':
+			return 'EnSpm'
+		else if annotation in ['Penelope', 'SINE', 'Helitron', 'Maverick']:
+			return annotation
+		else if annotation in ['Class I', 'Class II']:
+			return 'Unknown'
+
+	def determineSuper(annotation):
+		if annotation in ['Gymny', 'Gypsy']:
+			return 'Gypsy'
+		else if annotation in ['Copia', 'DIRS', 'Penelope', 'RTE', 'L1', 'Mariner/Tc1', 'hAT', 'Maverick', 'Helitron', 'Harbinger', 'P']:
+			return annotation
+		else if annotation == 'SINE2/tRNA':
+			return 'tRNA'
+		else if annotation == 'SINE1/7SL':
+			return '7SL'
+		else if annotation == 'MuDR':
+			return 'Mutator'
+		else:
+			return 'Unknown'
 
