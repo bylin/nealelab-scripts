@@ -12,20 +12,20 @@ class trfHit():
 	def __init__(self, Data=[]):
 		self.seq_name = Data[0]
 		self.start = int(Data[1]) #Intrices of the repeat relative to the start of the sequence 
-			self.end = int(Data[2])
-			self.period = int(Data[3])#Period size of the repeat
-			self.copy_num = float(Data[4])#Number of copies aligned with the consensus pattern
-			self.size_of_copy = int(Data[5])#Size of consensus pattern (may differ slightly from the period size)
-			self.percent_matches = float(Data[6])#Percent of matches between adjacent copies overall
-			self.percent_indels = float(Data[7])#Percent of indels between adjacent copies overall
-			self.score = int(Data[8])#Alignment score
-			self.a = float(Data[9])#Percent composition for each of the four nucleotides
-			self.c = float(Data[10])
-			self.g = float(Data[11])
-			self.t = float(Data[12])
-			self.entropy = float(Data[13])#Entropy measure based on percent composition
-			self.sequence = Data[14]#The repeat motif itself
-			self.length = self.end - self.start#Alignment length
+		self.end = int(Data[2])
+		self.period = int(Data[3])#Period size of the repeat
+		self.copy_num = float(Data[4])#Number of copies aligned with the consensus pattern
+		self.size_of_copy = int(Data[5])#Size of consensus pattern (may differ slightly from the period size)
+		self.percent_matches = float(Data[6])#Percent of matches between adjacent copies overall
+		self.percent_indels = float(Data[7])#Percent of indels between adjacent copies overall
+		self.score = int(Data[8])#Alignment score
+		self.a = float(Data[9])#Percent composition for each of the four nucleotides
+		self.c = float(Data[10])
+		self.g = float(Data[11])
+		self.t = float(Data[12])
+		self.entropy = float(Data[13])#Entropy measure based on percent composition
+		self.sequence = Data[14]#The repeat motif itself
+		self.length = self.end - self.start#Alignment length
 					
 	def __str__(self): 
 		#for printing in mysql format
@@ -56,8 +56,8 @@ class censorRepeat(object):# (object) allows for type checking, will return cens
 	def __init__(self,Data = []):
 		self.seq = Data[0]
 		self.sstart = int(Data[1]) #Indices of the repeat relative to the start of the sequence. 
-			self.send = int(Data[2])
-			self.name = Data[3]
+		self.send = int(Data[2])
+		self.name = Data[3]
 		self.rstart = int(Data[4])
 		self.rend = int(Data[5])
 		self.orientation = Data[6]
