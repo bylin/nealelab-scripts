@@ -1,5 +1,5 @@
 #!/bin/usr/python
-#Author: Jacob Zieve
+#Author: Jacob Zieve, Brian Lin
 
 """Defines different "types" of data inputs that are handled
 int the stats scritps. Many of the classes include overloaded equality, hashing
@@ -119,11 +119,11 @@ class PierRepeatElement(object):
 	annotationDict = storePIERAnnotationsAsDict()
 
 	def storePIERAnnotationsAsDict():
-	annotationDict = {}
-	for seq in SeqIO.parse('pier-1.2.fa', 'fasta'):
-		(seqID, annotation) = getSeqIdAndAnnotation(seq.description)
-		annotationDict[seqID] = annotation
-	return annotationDict
+		annotationDict = storePIERAnnotationsAsDict()
+		for seq in SeqIO.parse('pier-1.2.fa', 'fasta'):
+			(seqID, annotation) = getSeqIdAndAnnotation(seq.description)
+			annotationDict[seqID] = annotation
+		return annotationDict
 
 	def getSeqIdAndAnnotation(header):
 		seqID = header.id
