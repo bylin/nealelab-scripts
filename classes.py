@@ -6,6 +6,7 @@ int the stats scritps. Many of the classes include overloaded equality, hashing
 and comparison operators to be used in the script"""
 
 from collections import defaultdict
+from Bio import SeqIO
 #used as main data structure for sequence
 	
 class trfHit():
@@ -116,14 +117,14 @@ class blastHit:
 		 self.qend, self.sstart, self.send, self.ev, self.bs)
 
 class PierRepeatElement(object):
-	annotationDict = storePIERAnnotationsAsDict()
-
+	
 	def storePIERAnnotationsAsDict():
-		annotationDict = storePIERAnnotationsAsDict()
 		for seq in SeqIO.parse('pier-1.2.fa', 'fasta'):
 			(seqID, annotation) = getSeqIdAndAnnotation(seq.description)
 			annotationDict[seqID] = annotation
 		return annotationDict
+
+	annotationDict = storePIERAnnotationsAsDict()
 
 	def getSeqIdAndAnnotation(header):
 		seqID = header.id
@@ -139,7 +140,7 @@ class PierRepeatElement(object):
 	def determineClass(annotation):
 		if annotation in ['Gypsy', 'Copia', 'LTR', 'Class I', 'Penelope', 'LINE', 'SINE', 'SINE1/7SL', 'SINE2/tRNA', 'Gymny', 'L1', 'Non-LTR Retrotransposon', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'RTE']:
 			return 'I'
-		else if annotation in ['Class II', 'Helitron', 'DIR', 'DIRS', 'P', 'Maverick', 'hAT', 'TIR', 'Mariner/Tc1', 'Harbinger', 'MuDR', 'EnSpm']:
+		elif annotation in ['Class II', 'Helitron', 'DIR', 'DIRS', 'P', 'Maverick', 'hAT', 'TIR', 'Mariner/Tc1', 'Harbinger', 'MuDR', 'EnSpm']:
 			return 'II'
 		else:
 			return 'Uncategorized'
@@ -147,31 +148,31 @@ class PierRepeatElement(object):
 	def determineOrder(annotation):
 		if annotation in ['Gypsy', 'Copia', 'LTR', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'Gymny']:
 			return 'LTR'
-		else if annotation in ['LINE', 'L1', 'RTE']:
+		elif annotation in ['LINE', 'L1', 'RTE']:
 			return 'LINE'
-		else if annotation in ['SINE', 'SINE1/7SL', 'SINE2/tRNA']:
+		elif annotation in ['SINE', 'SINE1/7SL', 'SINE2/tRNA']:
 			return 'SINE'
-		else if annotation in ['hAT', 'P', 'Mariner/Tc1', 'Harbinger', 'MuDR', 'TIR']:
+		elif annotation in ['hAT', 'P', 'Mariner/Tc1', 'Harbinger', 'MuDR', 'TIR']:
 			return 'TIR'
-		else if annotation in ['DIR', 'DIRS']:
+		elif annotation in ['DIR', 'DIRS']:
 			return 'DIRS'
-		else if annotation == 'EnSpm':
+		elif annotation == 'EnSpm':
 			return 'EnSpm'
-		else if annotation in ['Penelope', 'SINE', 'Helitron', 'Maverick']:
+		elif annotation in ['Penelope', 'SINE', 'Helitron', 'Maverick']:
 			return annotation
-		else if annotation in ['Class I', 'Class II']:
+		elif annotation in ['Class I', 'Class II']:
 			return 'Unknown'
 
 	def determineSuper(annotation):
 		if annotation in ['Gymny', 'Gypsy']:
 			return 'Gypsy'
-		else if annotation in ['Copia', 'DIRS', 'Penelope', 'RTE', 'L1', 'Mariner/Tc1', 'hAT', 'Maverick', 'Helitron', 'Harbinger', 'P']:
+		elif annotation in ['Copia', 'DIRS', 'Penelope', 'RTE', 'L1', 'Mariner/Tc1', 'hAT', 'Maverick', 'Helitron', 'Harbinger', 'P']:
 			return annotation
-		else if annotation == 'SINE2/tRNA':
+		elif annotation == 'SINE2/tRNA':
 			return 'tRNA'
-		else if annotation == 'SINE1/7SL':
+		elif annotation == 'SINE1/7SL':
 			return '7SL'
-		else if annotation == 'MuDR':
+		elif annotation == 'MuDR':
 			return 'Mutator'
 		else:
 			return 'Unknown'
