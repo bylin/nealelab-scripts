@@ -116,14 +116,15 @@ class blastHit:
 		 self.sid, self.pid, self.alen, self.m, self.g, self.qstart,\
 		 self.qend, self.sstart, self.send, self.ev, self.bs)
 
+# TODO: flesh out class, order, super functions. Repbase can be tricky.
 class PierRepeat(object):
 	# Annotation examples: "Gypsy", "LTR", "Class II", "L1"
 	def __init__(self, annotation):
-		self.CLASS = determineClass(annotation)
-		self.ORDER = determineOrder(annotation)
-		self.SUPER = determineSuper(annotation)
+		self.CLASS = self.determineClass(annotation)
+		self.ORDER = self.determineOrder(annotation)
+		self.SUPER = self.determineSuper(annotation)
 
-	def determineClass(annotation):
+	def determineClass(self, annotation):
 		if annotation in ['Gypsy', 'Copia', 'LTR', 'Class I', 'Penelope', 'LINE', 'SINE', 'SINE1/7SL', 'SINE2/tRNA', 'Gymny', 'L1', 'Non-LTR Retrotransposon', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'RTE']:
 			return 'I'
 		elif annotation in ['Class II', 'Helitron', 'DIR', 'DIRS', 'P', 'Maverick', 'hAT', 'TIR', 'Mariner/Tc1', 'Harbinger', 'MuDR', 'EnSpm']:
@@ -131,7 +132,7 @@ class PierRepeat(object):
 		else:
 			return 'Uncategorized'
 
-	def determineOrder(annotation):
+	def determineOrder(self, annotation):
 		if annotation in ['Gypsy', 'Copia', 'LTR', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'Gymny']:
 			return 'LTR'
 		elif annotation in ['LINE', 'L1', 'RTE']:
@@ -148,8 +149,10 @@ class PierRepeat(object):
 			return annotation
 		elif annotation in ['Class I', 'Class II']:
 			return 'Unknown'
+		else:
+			return 'Unknown'
 
-	def determineSuper(annotation):
+	def determineSuper(self, annotation):
 		if annotation in ['Gymny', 'Gypsy']:
 			return 'Gypsy'
 		elif annotation in ['Copia', 'DIRS', 'Penelope', 'RTE', 'L1', 'Mariner/Tc1', 'hAT', 'Maverick', 'Helitron', 'Harbinger', 'P']:
