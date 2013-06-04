@@ -54,20 +54,16 @@ def getSeqIdAndAnnotation(header):
 	annotation = header.split('\t')[1]
 	return (seqID, annotation)
 
-class RedundancyChecker(object):
+class NonredundantBlockStorage(object):
 	def __init__(self):
-		self.targetSeqs = []
+		self.targetBlocks = []
 
-	def addTargetSeq(self, seqID, newSubseq):
-		if seqID in self.targetSeqs:
-			self.targetSeqs[seqID].checkAndAddSubseq(seqID, subseq)
-		else:
-			self.addNewTargetSeq(seqID, subseq)
+	def addAndFilterBlock(self, seqID, newBlock):
+		if seqID not in self.targetSeqs:
+			newTargetSeq = TargetSequenceSubseqs(seqID)
+			targetSeqs.append(newTargetSeq)
+		self.targetBlocks[seqID].mergeNewSeq(newBlock)
 
-	def addNewTargetSeq(self, seqID, newSubseq):
-		newTargetSeq = TargetSequenceSubseqs(seqID)
-		newTargetSeq.
-		targetSeqs.append(newTargetSeq)
 
 class TargetSequenceSubseqs(object):
 	def __init__(self, seqID):
@@ -77,36 +73,9 @@ class TargetSequenceSubseqs(object):
 	def __eq__(self, other):
 		return self.seqID == other.seqID
 
-	NO_OVERLAP = 0
-	FULL_OVERLAP = 1
-	OVERLAPLEFT = 10
-	OVERLAPRIGHT = 100
-
-	def checkAndAddSubseq(self, seqID, newSubseq):
-		overlapCode = NO_OVERLAP
-		newSubseqStart = newSubseq[0]
-		newSubseqEnd = newSubseq[1]
-		for existingSubseq in self.subseqs[seqID]:
-			existingSubseqStart = existingSubseq[0]
-			existingSubseqEnd = existingSubseq[1]
-			if (newSubseqEnd < existingSubseqEnd) and (newSubseqStart > existingSubseqEnd):
-				return
-			if (newSubseqStart < existingSubseqStart) and (newSubseqEnd > existingSubseqEnd):
-
-			if (newSubseqStart > existingSubseqEnd) or (newSubseqEnd < existingSubseqStart):
-				continue
-			if (newSubseqStart > existingSubseqStart) and (newSubseqEnd > existingSubseqEnd):
-				rightOverlapSeq = existingSubseq
-				overlapCode += OVERLAPRIGHT
-				continue
-			if (newSubseqStart < existingSubseqStart) and (newSubseqEnd < existingSubseqEnd):
-				leftOverlapSeq = existingSubseq
-				overlapCode += OVERLAPLEFT
-				continue
-		if overlapCode == NO_OVERLAP:
-			self.subseqs[seqID].append((newSubseqStart, newSubseqEnd))
-		elif overlapCode == OVERLAPLEFT:
-			self.subseqs[seqID].remove()
+	def mergeNewSeq(self, newSubseq):
+		newSubseqList = self.subseqs.append(newSubseq)
+		self.subseqs = list(TupleMergeGenerator.merge(newSubseqList))
 
 if __name__ == '__main__':
 	filename = checkAndReturnArguments()
@@ -114,14 +83,17 @@ if __name__ == '__main__':
 	annotationDict = storePIERAnnotationsAsDict()
 	timer = 0
 	stats = RepeatStats()
+	NonredundantBlocks = NonredundantBlockStorage()
 	for line in psl_file:
 		tabs = line.split('\t')
 		seqName = tabs[9]
+		targetSeqName = tabs[12]
 		seqAnnotation = annotationDict[seqName]
 		currentHit = PierRepeat(seqAnnotation)
-		blockSizes = convertCSVsToIntList(tabs[18]) # tabs[18] is a CSV string
-		filteredBlockSizes = removeRedundancyFrom(blockSizes)
-		for blockSize in blockSizes:
+
+		#TODO: convert to generator
+		for block in convertCSVsToIntList(tabs[18], tabs[19], tabs[20]) # tabs[18] is a CSV string
+			filteredBlockSize = NonredundantBlocks.addAndFilterBlock(targetSeqName, block)
 			stats.addRepeatCopy(currentHit, blockSize)
 		if timer % 400000 == 0:
 			print stats
