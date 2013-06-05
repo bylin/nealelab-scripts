@@ -9,12 +9,12 @@ def checkAndReturnArguments():
 		print "Usage: getPslFileRepeatStats.py [input psl file]"
 	return sys.argv[1]
 
-def convertCSVsToIntList(csvString):
-	stringList = csvString.split(',')
-	intList = []
-	for value in stringList[:-1]: # the last value is an empty string; raw string has a trailing comma
-		intList.append(int(value))
-	return intList
+def convertCSVsToBlocks(csvBlockSizes, csvStarts):
+	blockSizes = csvBlockSizes.split(',')
+	blockStarts = csvStarts.split(',')
+	for blockSize, blockStart in zip(blockSizes[:-1], blockStarts[:-1]): # the last value is an empty string; raw string has a trailing comma
+		blockEnd = blockStart + blockSize
+		yield (int(blockStart), int(blockEnd))
 
 class RepeatStats(object):
 
@@ -62,8 +62,7 @@ class NonredundantBlockStorage(object):
 		if seqID not in self.targetSeqs:
 			newTargetSeq = TargetSequenceSubseqs(seqID)
 			targetSeqs.append(newTargetSeq)
-		self.targetBlocks[seqID].mergeNewSeq(newBlock)
-
+		filteredBlock = self.targetBlocks[seqID].mergeNewSeqAndFindDifference(newBlock)
 
 class TargetSequenceSubseqs(object):
 	def __init__(self, seqID):
@@ -73,9 +72,12 @@ class TargetSequenceSubseqs(object):
 	def __eq__(self, other):
 		return self.seqID == other.seqID
 
-	def mergeNewSeq(self, newSubseq):
+	def mergeNewSeqAndFindDifference(self, newSubseq):
+		oldLength = sum((end-start) for (start,end) in self.subseqs)
 		newSubseqList = self.subseqs.append(newSubseq)
 		self.subseqs = list(TupleMergeGenerator.merge(newSubseqList))
+		newLength = sum((end-start) for (start,end) in self.subseqs)
+		return newLength - oldLength
 
 if __name__ == '__main__':
 	filename = checkAndReturnArguments()
@@ -83,18 +85,16 @@ if __name__ == '__main__':
 	annotationDict = storePIERAnnotationsAsDict()
 	timer = 0
 	stats = RepeatStats()
-	NonredundantBlocks = NonredundantBlockStorage()
+	blocks = NonredundantBlockStorage()
 	for line in psl_file:
 		tabs = line.split('\t')
 		seqName = tabs[9]
 		targetSeqName = tabs[12]
 		seqAnnotation = annotationDict[seqName]
 		currentHit = PierRepeat(seqAnnotation)
-
-		#TODO: convert to generator
-		for block in convertCSVsToIntList(tabs[18], tabs[19], tabs[20]) # tabs[18] is a CSV string
-			filteredBlockSize = NonredundantBlocks.addAndFilterBlock(targetSeqName, block)
-			stats.addRepeatCopy(currentHit, blockSize)
+		for currentBlock in convertCSVsToBlocks(tabs[18], tabs[20]): # tabs[18] is a CSV string
+			filteredBlock = blocks.addAndFilterBlock(targetSeqName, currentBlock)
+			stats.addRepeatCopy(currentHit, filteredBlock)
 		if timer % 400000 == 0:
 			print stats
 		timer += 1
