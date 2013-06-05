@@ -2,7 +2,7 @@
 import sys
 from classes import PierRepeat
 from Bio import SeqIO
-import TupleMergeGenerator
+import TupleMerger
 
 def checkAndReturnArguments():
 	if (len(sys.argv) != 2):
@@ -13,7 +13,7 @@ def convertCSVsToBlocks(csvBlockSizes, csvStarts):
 	blockSizes = csvBlockSizes.split(',')
 	blockStarts = csvStarts.split(',')
 	for blockSize, blockStart in zip(blockSizes[:-1], blockStarts[:-1]): # the last value is an empty string; raw string has a trailing comma
-		blockEnd = blockStart + blockSize
+		blockEnd = int(blockStart) + int(blockSize)
 		yield (int(blockStart), int(blockEnd))
 
 class RepeatStats(object):
@@ -21,7 +21,7 @@ class RepeatStats(object):
 	def __init__(self):
 		self.BpsByRepeatClassifs = {}
 
-	def addRepeatCopy(self, repeat, repeatLength): # repeat is of type PierRepeat
+	def addRepeatCopy(self, repeat, blockSize): # repeat is of type PierRepeat
 		if repeat.CLASS in self.BpsByRepeatClassifs:
 			self.BpsByRepeatClassifs[repeat.CLASS] += blockSize
 		else: 
@@ -56,27 +56,14 @@ def getSeqIdAndAnnotation(header):
 
 class NonredundantBlockStorage(object):
 	def __init__(self):
-		self.targetBlocks = []
+		self.targetBlocks = {}
 
-	def addAndFilterBlock(self, seqID, newBlock):
-		if seqID not in self.targetSeqs:
-			newTargetSeq = TargetSequenceSubseqs(seqID)
-			targetSeqs.append(newTargetSeq)
-		filteredBlock = self.targetBlocks[seqID].mergeNewSeqAndFindDifference(newBlock)
-
-class TargetSequenceSubseqs(object):
-	def __init__(self, seqID):
-		self.seqID = seqID
-		self.subseqs = []
-	
-	def __eq__(self, other):
-		return self.seqID == other.seqID
-
-	def mergeNewSeqAndFindDifference(self, newSubseq):
-		oldLength = sum((end-start) for (start,end) in self.subseqs)
-		newSubseqList = self.subseqs.append(newSubseq)
-		self.subseqs = list(TupleMergeGenerator.merge(newSubseqList))
-		newLength = sum((end-start) for (start,end) in self.subseqs)
+	def mergeAndReturnFilteredBlock(self, seqID, newBlock):
+		if seqID not in self.targetBlocks:
+			self.targetBlocks[seqID] = []
+		oldLength = TupleMerger.totalLength(self.targetBlocks[seqID])
+		self.targetBlocks[seqID] = TupleMerger.merge(self.targetBlocks[seqID], newBlock)
+		newLength = TupleMerger.totalLength(self.targetBlocks[seqID])
 		return newLength - oldLength
 
 if __name__ == '__main__':
@@ -89,13 +76,11 @@ if __name__ == '__main__':
 	for line in psl_file:
 		tabs = line.split('\t')
 		seqName = tabs[9]
-		targetSeqName = tabs[12]
+		targetSeqName = tabs[13]
 		seqAnnotation = annotationDict[seqName]
 		currentHit = PierRepeat(seqAnnotation)
 		for currentBlock in convertCSVsToBlocks(tabs[18], tabs[20]): # tabs[18] is a CSV string
-			filteredBlock = blocks.addAndFilterBlock(targetSeqName, currentBlock)
+			filteredBlock = blocks.mergeAndReturnFilteredBlock(targetSeqName, currentBlock)
 			stats.addRepeatCopy(currentHit, filteredBlock)
-		if timer % 400000 == 0:
-			print stats
-		timer += 1
+		print stats, seqName, targetSeqName
 	print stats
