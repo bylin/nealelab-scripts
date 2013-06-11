@@ -4,7 +4,7 @@
 
 import subprocess, argparse, os, textwrap, datetime
 global timestamp
-timestamp = datetime.datetime.today().strftime("%y%m%d%H%m%S")
+timestamp = 'run-'+datetime.datetime.today().strftime("%y%m%d%H%m%S")
 
 def main():
 	args = parseArgs()
@@ -19,8 +19,9 @@ def parseArgs():
 	
 	Example usage: 
 		SGEJobWrapper.py -m gcc repeatmasker -cmd 'RepeatMasker input_file.fa -pa 10 -lib library_file.fa -q -nolow -gff'
+	
 	or, if you want to run a command on multiple files in an input directory using SGE job arrays, 15 slots:
-		SGEJobWrapper.py -m gcc repeatmasker -j -s 15 -d [input_directory] -cmd 'RepeatMasker $INPUT_FILE -pa 10 -lib library_file.fa -q -nolow -gff '''
+		SGEJobWrapper.py -j -s 15 -d [input_directory] -m repeatmasker -cmd 'RepeatMasker $INPUT_FILE -pa 10 -lib library_file.fa -q -nolow -gff '''
 	argParser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=textwrap.dedent(mydesc))
 	argParser.add_argument('-m', '--modules', nargs='+', required=True, help='Modules to load')
 	argParser.add_argument('-cmd', '--command', nargs=1, required=True, help='Command to qsub')
