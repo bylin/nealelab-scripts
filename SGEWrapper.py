@@ -2,15 +2,15 @@
 # Author: Brian Lin
 # SGE wrapper. Generates a helper file and runs it.
 
-import subprocess, argparse, os, textwrap, datetime
+import subprocess, argparse, os, textwrap, datetime, shutil
 global timestamp
-timestamp = 'run-'+datetime.datetime.today().strftime("%y%m%d%H%m%S")
+timestamp = 'run-'+datetime.datetime.today().strftime("%d-%m-%y-%H%m")
 
 def main():
 	args = parseArgs()
-	os.mkdir(timestamp)
+	setUpEnv(args)
 	generateQsubScript(args)
-	cmd = 'qsub ' + timestamp + '/SGEWrapper.sh'
+	cmd = 'qsub SGEWrapper.sh'
 	subprocess.call(cmd, shell=True)
 
 def parseArgs():
@@ -18,19 +18,27 @@ def parseArgs():
 	SGE wrapper. Contains options for qsub's built-in job arrays.
 	
 	Example usage: 
-		SGEJobWrapper.py -m gcc repeatmasker -cmd 'RepeatMasker input_file.fa -pa 10 -lib library_file.fa -q -nolow -gff'
+		SGEWrapper.py -m gcc repeatmasker -cmd 'RepeatMasker input_file.fa -pa 10 -lib library_file.fa -q -nolow -gff'
 	
 	or, if you want to run a command on multiple files in an input directory using SGE job arrays, 15 slots:
-		SGEJobWrapper.py -j -s 15 -d [input_directory] -m repeatmasker -cmd 'RepeatMasker $INPUT_FILE -pa 10 -lib library_file.fa -q -nolow -gff '''
+		SGEWrapper.py -j -d [input_directory] -m repeatmasker -f library_file.fa -cmd 'RepeatMasker $INPUT_FILE -pa 10 -lib library_file.fa -q -nolow -gff '''
 	argParser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=textwrap.dedent(mydesc))
+	argParser.add_argument('-j', '--use_job_array', help='Use a SGE job array', action='store_true')
 	argParser.add_argument('-m', '--modules', nargs='+', required=True, help='Modules to load')
-	argParser.add_argument('-cmd', '--command', nargs=1, required=True, help='Command to qsub')
+	argParser.add_argument('-d', '--input_directory', nargs=1, help='Directory containing all input files to be scheduled with the command in the job array')
+	argParser.add_argument('-f', '--extra_files', nargs='+', help='Extra files that need to be used by the program')
 	argParser.add_argument('-o', '--stdout', nargs=1, help='Standard output file', default='SGEWrapper.stdout')
 	argParser.add_argument('-e', '--stderr', nargs=1, help='Standard error file', default='SGEWrapper.stderr')
-	argParser.add_argument('-j', '--use_job_array', help='Use a SGE job array', action='store_true')
-	argParser.add_argument('-s', '--slots', nargs=1, type=int, help='Number of slots to use with the job array')
-	argParser.add_argument('-d', '--input_directory', nargs=1, help='Directory containing all input files to be scheduled with the command in the job array')
+	argParser.add_argument('-cmd', '--command', nargs=1, required=True, help='Command to qsub')
 	return argParser.parse_args()
+
+def setUpEnv(args):
+	if os.path.exists(timestamp): shutil.rmtree(timestamp)
+	os.mkdir(timestamp)
+	if args.extra_files is not None: 
+		for extra_file in args.extra_files:
+			shutil.copy(extra_file, timestamp)
+	os.chdir(timestamp)
 
 def generateQsubScript(args):
 	if args.use_job_array:
@@ -39,19 +47,26 @@ def generateQsubScript(args):
 		generateQsubSingleJobScript(args)
 
 def generateQsubArrayScript(args):
-	outfile = file(timestamp + '/SGEWrapper.sh', 'w')
-	inputDirectory = args.input_directory[0]
-	nJobParser = lambda d: str(len(os.listdir(inputDirectory)))
-	nJobs = nJobParser(inputDirectory)
+	outfile = file('SGEWrapper.sh', 'w')
+	inputDirectory = '../' + args.input_directory[0]
+	(inputFile, nJobs) = scanInputs(inputDirectory)
 	script = '#!/bin/bash\n# Qsub script generated from SGEWrapper.py\n#$ -S /bin/bash\n#$ -cwd\n#$ -N SGEWrapper\n#$ -q bigmem1.q\n'
 	script += '#$ -t 1-' + nJobs + '\n'
-	script += '#$ -o ' + timestamp + '/' + args.stdout + '\n'
-	script += '#$ -e ' + timestamp + '/' + args.stderr + '\n\n'
+	script += '#$ -o ' + args.stdout + '\n'
+	script += '#$ -e ' + args.stderr + '\n\n'
 	script += 'module load ' + ' '.join(args.modules) + '\n\n'
-	script += 'FILES=(`ls ' + inputDirectory +'/*`)\n'
-	script += 'INPUT_FILE=${FILES[SGE_TASK_ID-1]}\n'
+	script += 'INPUT_FILE=`sed -n "${SGE_TASK_ID}p" ' + inputFile + '`\n'
 	script += args.command[0] + '\n'
 	outfile.write(script)
+
+def scanInputs(inputDirectory):
+	inputFile = 'SGEWrapperInputFiles.txt'
+	cmd = 'ls ' + inputDirectory + '/* > ' + inputFile
+	proc = subprocess.call(cmd, shell=True)
+	lineCounter = 0
+	inputFileHandle = open(inputFile)
+	nJobs = sum(lineCounter + 1 for line in inputFileHandle)
+	return(inputFile, str(nJobs))
 
 def generateQsubSingleJobScript(args):
 	outfile = file('SGEJobWrapper.sh', 'w')
