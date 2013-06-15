@@ -130,24 +130,24 @@ class WickerRepeat(Repeat):
 		myClass = code[0]
 		if myClass == 'R': return 'I'
 		elif myClass == 'D': return 'II'
-		elif myClass = 'X': return 'Unknown'
+		elif myClass == 'X': return 'Unknown'
 	
 	def determineOrder(self, code):
 		order = code[1]
-		if self.CLASS = 'R':
+		if self.CLASS == 'R':
 			if order == 'X': return 'Unknown'
 			elif order == 'L': return 'LTR'
 			elif order == 'I': return 'LINE'
 			elif order == 'Y': return 'DIRS'
 			elif order == 'S': return 'SINE'
 			elif order == 'P': return 'Penelope'
-		elif self.CLASS = 'D':
+		elif self.CLASS == 'D':
 			if order == 'X': return 'Unknown'
 			elif order == 'T': return 'TIR'
 			elif order == 'Y': return 'Crypton'
 			elif order == 'H': return 'Helitron'
 			elif order == 'M': return 'Maverick'
-		elif self.CLASS = 'Uncategorized':
+		elif self.CLASS == 'Uncategorized':
 			return 'Uncategorized'
 		else: return 'Unknown'
 		
@@ -207,26 +207,20 @@ class RepeatStats(object):
 		self.BpsByRepeatClassifs = {}
 
 	def addRepeatCopy(self, repeat, blockSize): # repeat is of type Repeat
-		if repeat.CLASS in self.BpsByRepeatClassifs:
-			self.BpsByRepeatClassifs[repeat.CLASS] += blockSize
-		else: 
-			self.BpsByRepeatClassifs[repeat.CLASS] = 0
-		if repeat.SUPER in self.BpsByRepeatClassifs:
-			self.BpsByRepeatClassifs[repeat.SUPER] += blockSize
-		else: 
-			self.BpsByRepeatClassifs[repeat.SUPER] = 0
-		if repeat.ORDER in self.BpsByRepeatClassifs:
-			self.BpsByRepeatClassifs[repeat.ORDER] += blockSize
-		else: 
-			self.BpsByRepeatClassifs[repeat.ORDER] = 0
+		for classification in [repeat.CLASS, repeat.SUPER, repeat.ORDER]:
+			if classification in self.BpsByRepeatClassifs:
+				self.BpsByRepeatClassifs[classification] += blockSize
+			else: 
+				self.BpsByRepeatClassifs[classification] = blockSize
 			
 	def __iadd__(self, repeatTuple): #overloads stats += (repeat, blockSize)
 		self.addRepeatCopy(repeatTuple[0], repeatTuple[1])
+		return self
 	
 	
 	def __str__(self):
 		outputString = ''
 		for repeat in self.BpsByRepeatClassifs:
 			repeatBps = str(self.BpsByRepeatClassifs[repeat])
-			outputString += repeat + ': ' + repeatBps + ', '
+			outputString += str(repeat) + ': ' + repeatBps + ', '
 		return outputString[:-2] # truncate the trailing ', '
