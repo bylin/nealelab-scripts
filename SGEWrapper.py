@@ -20,15 +20,16 @@ def parseArgs():
 	Example usage: 
 		SGEWrapper.py -m gcc repeatmasker -cmd 'RepeatMasker input_file.fa -pa 10 -lib library_file.fa -q -nolow -gff'
 	
-	or, if you want to run a command on multiple files in an input directory using SGE job arrays, 15 slots:
-		SGEWrapper.py -j -d [input_directory] -m repeatmasker -f library_file.fa -cmd 'RepeatMasker $INPUT_FILE -pa 10 -lib library_file.fa -q -nolow -gff '''
+	or, if you want to run a command on multiple files in an input directory using SGE job arrays, 5 slots:
+		SGEWrapper.py -j -tc 5 -d [input_directory] -m repeatmasker -f library_file.fa -cmd 'RepeatMasker $INPUT_FILE -lib library_file.fa -q -nolow -gff' '''
 	argParser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=textwrap.dedent(mydesc))
 	argParser.add_argument('-j', '--use_job_array', help='Use a SGE job array', action='store_true')
+	argParser.add_argument('-tc', '--max_running_tasks', nargs=1, help='Number of concurrent jobs to run at a time')
 	argParser.add_argument('-m', '--modules', nargs='+', required=True, help='Modules to load')
 	argParser.add_argument('-d', '--input_directory', nargs=1, help='Directory containing all input files to be scheduled with the command in the job array')
 	argParser.add_argument('-f', '--extra_files', nargs='+', help='Extra files that need to be used by the program')
-	argParser.add_argument('-o', '--stdout', nargs=1, help='Standard output file', default='SGEWrapper.stdout')
-	argParser.add_argument('-e', '--stderr', nargs=1, help='Standard error file', default='SGEWrapper.stderr')
+	argParser.add_argument('-o', '--stdout', nargs=1, help='Standard output file', default=['SGEWrapper.stdout'])
+	argParser.add_argument('-e', '--stderr', nargs=1, help='Standard error file', default=['SGEWrapper.stderr'])
 	argParser.add_argument('-cmd', '--command', nargs=1, required=True, help='Command to qsub')
 	return argParser.parse_args()
 
@@ -52,8 +53,9 @@ def generateQsubArrayScript(args):
 	(inputFile, nJobs) = scanInputs(inputDirectory)
 	script = '#!/bin/bash\n# Qsub script generated from SGEWrapper.py\n#$ -S /bin/bash\n#$ -cwd\n#$ -N SGEWrapper\n#$ -q bigmem1.q\n'
 	script += '#$ -t 1-' + nJobs + '\n'
-	script += '#$ -o ' + args.stdout + '\n'
-	script += '#$ -e ' + args.stderr + '\n\n'
+	script += '#$ -tc ' + args.max_running_tasks[0] + '\n\n'
+	script += '#$ -o ' + args.stdout[0] + '\n'
+	script += '#$ -e ' + args.stderr[0] + '\n\n'
 	script += 'module load ' + ' '.join(args.modules) + '\n\n'
 	script += 'INPUT_FILE=`sed -n "${SGE_TASK_ID}p" ' + inputFile + '`\n'
 	script += args.command[0] + '\n'
