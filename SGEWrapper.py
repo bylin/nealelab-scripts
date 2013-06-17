@@ -30,6 +30,7 @@ def parseArgs():
 	argParser.add_argument('-f', '--extra_files', nargs='+', help='Extra files that need to be used by the program')
 	argParser.add_argument('-o', '--stdout', nargs=1, help='Standard output file', default=['SGEWrapper.stdout'])
 	argParser.add_argument('-e', '--stderr', nargs=1, help='Standard error file', default=['SGEWrapper.stderr'])
+	argParser.add_argument('-M', '--email', nargs=1, help='Email account user wishes to send job start and end notifications to')
 	argParser.add_argument('-cmd', '--command', nargs=1, required=True, help='Command to qsub')
 	return argParser.parse_args()
 
@@ -77,6 +78,7 @@ def generateQsubSingleJobScript(args):
 	#$ -cwd
 	#$ -N SGEJobWrapper
 	#$ -q bigmem1.q
+	#$ -M ''' + args.email + '''
 	#$ -o ''' + args.stdout + '''
 	#$ -e ''' + args.stderr + '\n'
 	for module in args.modules:
