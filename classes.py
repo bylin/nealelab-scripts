@@ -82,21 +82,6 @@ class censorRepeat(object):# (object) allows for type checking, will return cens
 	def __str__(self):
 		return 'name: {:s}\nscore: {:d}\n'.format(self.name,self.score)
 
-class denovoRepeat(object):
-	def __init__(self,num,cat):
-		self.num = num #unique id for each consensus sequence
-		self.cat = cat#categorie (e.g. RLX = LTRs)
-	#	self.seq = seq #where found on the original sequence
-	#	self.status = status #complete or incomplete
-	
-	def __str__(self):#for debug
-		return 'num: {:s}\ncategory: {:s}\n'.format(self.num,self.cat)
-	def __eq__(self,other):
-		return self.cat == other
-	def __hash__(self): #used in set() function later
-		return hash(self.cat)
-	
-		
 class blastHit:
 	def __init__(self, data = []):
 		self.qid = data[0]#query id
@@ -127,7 +112,7 @@ class Repeat(object):
 		self.FAMILY = self.determineFamily(name)
 	
 	def __str__(self):#for debug
-		return '{:s}: \n{:s, :s, :s, :s}\n'.format(self.NAME, self.CLASS, self.ORDER, self.SUPER, self.FAMILY)
+		return self.NAME
 
 	def __eq__(self, other):
 		return self.name == other
