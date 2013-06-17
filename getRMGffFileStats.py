@@ -21,7 +21,7 @@ def getFileList():
 	
 def parseArgs():
 	argParser = argparse.ArgumentParser(description='Get repeat element stats from RepeatMasker GFF output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.')
-	group = parser.add_mutually_exclusive_group(required=True)
+	group = parser.add_mutually_exclusive_group()
 	group.add_argument('-f', '--file', help='Input file')
 	group.add_argument('-d', '--directory', help='Input directory')
 	group.add_argument('input', help='Input file/directory name')
@@ -34,7 +34,28 @@ def addStatsFromFile(stats, fileHandle):
 		stats += parseLineIntoRepeatTuple(line)
 
 def parseLineIntoRepeatTuple(line):
-	tabs = line.split('\t')
-	trivialParse = lambda x: return 
-	# 'Target "Motif:PtRLX_772" 1 3453\n'
+	parsedLine = line.strip().split('\t')[8][14:].split(' ')
+	repeatName = parsedLine[0][:-1]
+	blockSize = int(parsedLine[2]) - int(parsedLine[1]) + 1
+	repeat = buildRepeatFromName(repeatName)
 	(repeat, blockSize) = trivialParse
+
+# check if re.match is faster than array matching
+def buildRepeatFromName(repeatName):
+	if repeatName[0:2] == 'Pt': # either Wicker or custom
+		if repeatName[5] == '_':
+			repeat = classes.WickerRepeat(repeatName[2:5], repeatName)
+		elif repeatName[7] == '_':
+			repeat = classes.WickerRepeat('Uncategorized', repeatName)
+#		elif repeatName[2:11] == 'Potential':
+#			repeat = classes.Wi
+		else:
+			if repeatName in ['PtOuachita', 'PtBastrop', 'PtOzark', 'PtAppalachian', 'PtAngelina', 'PtTalladega']:
+				repeat = classes.WickerRepeat('RLG', repeatName)
+			elif repeatName in ['PtCumberland', 'PtPineywoods', 'PtConagree']:
+				repeat = classes.WickerRepeat('RLC', repeatName)
+			elif repeatName == 'PtPiedmont':
+				repeat = classes.WickerREepat('RLX', repeatName)
+#	else: # Repbase annotation
+#		repeat = classes.PierRepeat(repeatName)
+	return repeat
