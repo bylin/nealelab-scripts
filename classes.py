@@ -124,6 +124,7 @@ class Repeat(object):
 		self.CLASS = self.determineClass(code)
 		self.ORDER = self.determineOrder(code)
 		self.SUPER = self.determineSuper(code)
+		self.FAMILY = self.determineFamily(name)
 	
 	def __str__(self):#for debug
 		return 'num: {:s}\ncategory: {:s}\n'.format(self.name, self.code)
@@ -142,6 +143,7 @@ class WickerRepeat(Repeat):
 		if myClass == 'R': return 'I'
 		elif myClass == 'D': return 'II'
 		elif myClass == 'X': return 'Confused'
+		elif code in ['PotentialHostGene', 'noCat', 'rRNA']: return code
 	
 	def determineOrder(self, code):
 		order = code[1]
@@ -158,7 +160,7 @@ class WickerRepeat(Repeat):
 			elif order == 'Y': return 'Crypton'
 			elif order == 'H': return 'Helitron'
 			elif order == 'M': return 'Maverick'
-		elif self.CLASS == 'Confused':
+		elif self.CLASS in ['Confused', 'PotentialHostGene', 'noCat', 'rRNA']:
 			return 'Unknown'
 		else: exit("Unhandled case: " + code)
 		
@@ -166,6 +168,10 @@ class WickerRepeat(Repeat):
 		super = code[2]
 		if super == 'G': return 'Gypsy'
 		elif super == 'C': return 'Copia'
+
+	def determineFamily(self, name):
+		pieces = name.split('_')
+		return pieces[0]
 
 # TODO: flesh out class, order, super functions. Repbase can be tricky.
 class PierRepeat(Repeat):
@@ -212,6 +218,10 @@ class PierRepeat(Repeat):
 			return 'Mutator'
 		else:
 			return 'Unknown'
+
+	def determineFamily(self, name):
+		pieces = name.split('_')
+		return pieces[0]
 
 class RepeatStats(object):
 
