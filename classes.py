@@ -118,7 +118,8 @@ class blastHit:
 		 self.qend, self.sstart, self.send, self.ev, self.bs)
 
 class Repeat(object):
-	def __init__(self, code):
+	def __init__(self, code, name):
+		self.NAME = name
 		self.CLASS = self.determineClass(code)
 		self.ORDER = self.determineOrder(code)
 		self.SUPER = self.determineSuper(code)
@@ -207,7 +208,7 @@ class RepeatStats(object):
 		self.BpsByRepeatClassifs = {}
 
 	def addRepeatCopy(self, repeat, blockSize): # repeat is of type Repeat
-		for classification in [repeat.CLASS, repeat.SUPER, repeat.ORDER]:
+		for classification in [repeat.NAME, repeat.CLASS, repeat.SUPER, repeat.ORDER]:
 			if classification in self.BpsByRepeatClassifs:
 				self.BpsByRepeatClassifs[classification] += blockSize
 			else: 
