@@ -28,10 +28,10 @@ def parseArgs():
 	
 
 def addStatsFromFile(stats, fileHandle):
-	myfile = open(fileHandle)
+	gffFile = open(fileHandle)
 	# need to skip first 3 lines of GFF files
-	for x in range(0,3): myfile.readline()
-	for line in myfile:
+	for x in range(0,3): gffFile.readline()
+	for line in gffFile:
 		stats += parseLineIntoRepeatTuple(line)
 
 def parseLineIntoRepeatTuple(line):
@@ -43,12 +43,13 @@ def parseLineIntoRepeatTuple(line):
 
 # check if re.match is faster than array matching
 def buildRepeatFromName(repeatName):
-	if repeatName[0:2] == 'Pt': # either REPET/Wicker, or custom
+	# if not a Wicker annotation: use PierRepeat().
+	isWicker = repeatName[0:2] == 'Pt' and (repeatName[5] == '_' or (len(repeatName) > 5 and repeatName[2:6] in ['noCa', 'Pote', 'rRna', 'SSR']))
+	if isWicker:
 		code = repeatName[2:].split('_')[0]
 		repeat = classes.WickerRepeat(code, repeatName)
-	else: # Repbase annotation
+	else:
 		repeat = classes.PierRepeat(repeatName)
-	print repeatName
 	return repeat
 
 if __name__ == '__main__':
