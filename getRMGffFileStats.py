@@ -45,7 +45,7 @@ def parseLineIntoRepeatTuple(line):
 def buildRepeatFromName(repeatName):
 	if repeatName[0:2] == 'Pt': # either REPET/Wicker, or custom
 		code = repeatName[2:].split('_')[0]
-			repeat = classes.WickerRepeat(code)
+		repeat = classes.WickerRepeat(code, repeatName)
 	else: # Repbase annotation
 		repeat = classes.PierRepeat(repeatName)
 	print repeatName

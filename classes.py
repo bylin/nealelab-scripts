@@ -127,7 +127,7 @@ class Repeat(object):
 		self.FAMILY = self.determineFamily(name)
 	
 	def __str__(self):#for debug
-		return 'num: {:s}\ncategory: {:s}\n'.format(self.name, self.code)
+		return '{:s}\n{:s}\n'.format(self.name, self.code)
 
 	def __eq__(self, other):
 		return self.name == other
@@ -146,23 +146,27 @@ class WickerRepeat(Repeat):
 		elif code in ['PotentialHostGene', 'noCat', 'rRNA']: return code
 	
 	def determineOrder(self, code):
+		myClass = code[1]
 		order = code[1]
-		if self.CLASS == 'R':
+		if myClass == 'R':
 			if order == 'X': return 'Unknown'
 			elif order == 'L': return 'LTR'
 			elif order == 'I': return 'LINE'
 			elif order == 'Y': return 'DIRS'
 			elif order == 'S': return 'SINE'
 			elif order == 'P': return 'Penelope'
-		elif self.CLASS == 'D':
+		elif myClass == 'D':
 			if order == 'X': return 'Unknown'
 			elif order == 'T': return 'TIR'
 			elif order == 'Y': return 'Crypton'
 			elif order == 'H': return 'Helitron'
 			elif order == 'M': return 'Maverick'
-		elif self.CLASS in ['Confused', 'PotentialHostGene', 'noCat', 'rRNA']:
+		elif myClass in ['Confused', 'PotentialHostGene', 'noCat', 'rRNA']:
 			return 'Unknown'
-		else: exit("Unhandled case: " + code)
+		else:
+			print self
+			exit("Unhandled case: " + code)
+
 		
 	def determineSuper(self, code):
 		super = code[2]
