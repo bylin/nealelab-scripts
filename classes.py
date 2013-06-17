@@ -118,12 +118,22 @@ class blastHit:
 		 self.qend, self.sstart, self.send, self.ev, self.bs)
 
 class Repeat(object):
+
 	def __init__(self, code, name):
 		self.NAME = name
 		self.CLASS = self.determineClass(code)
 		self.ORDER = self.determineOrder(code)
 		self.SUPER = self.determineSuper(code)
-		
+	
+	def __str__(self):#for debug
+		return 'num: {:s}\ncategory: {:s}\n'.format(self.name, self.code)
+
+	def __eq__(self, other):
+		return self.name == other
+
+	def __hash__(self): #used in set() function later
+		return hash(self.name)
+
 class WickerRepeat(Repeat):
 	# Example: myRepeat = WickerRepeat('RLX')
 	
@@ -131,7 +141,7 @@ class WickerRepeat(Repeat):
 		myClass = code[0]
 		if myClass == 'R': return 'I'
 		elif myClass == 'D': return 'II'
-		elif myClass == 'X': return 'Unknown'
+		elif myClass == 'X': return 'Confused'
 	
 	def determineOrder(self, code):
 		order = code[1]
@@ -148,9 +158,9 @@ class WickerRepeat(Repeat):
 			elif order == 'Y': return 'Crypton'
 			elif order == 'H': return 'Helitron'
 			elif order == 'M': return 'Maverick'
-		elif self.CLASS == 'Uncategorized':
-			return 'Uncategorized'
-		else: return 'Unknown'
+		elif self.CLASS == 'Confused':
+			return 'Unknown'
+		else: exit("Unhandled case: " + code)
 		
 	def determineSuper(self, code):
 		super = code[2]
@@ -159,17 +169,18 @@ class WickerRepeat(Repeat):
 
 # TODO: flesh out class, order, super functions. Repbase can be tricky.
 class PierRepeat(Repeat):
-	# Annotation examples: "Gypsy", "LTR", "Class II", "L1"
+	# Example: myRepeat = WickerRepeat('PtPiedmont')
+
 	def determineClass(self, annotation):
-		if annotation in ['Gypsy', 'Copia', 'LTR', 'Class I', 'Penelope', 'LINE', 'SINE', 'SINE1/7SL', 'SINE2/tRNA', 'Gymny', 'L1', 'Non-LTR Retrotransposon', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'RTE']:
+		if annotation in ['PtOuachita', 'PtBastrop', 'PtOzark', 'PtAppalachian', 'PtAngelina', 'PtTalladega', 'PtCumberland', 'PtPineywoods', 'PtConagree', 'Gypsy', 'Copia', 'LTR', 'Class I', 'Penelope', 'LINE', 'SINE', 'SINE1/7SL', 'SINE2/tRNA', 'Gymny', 'L1', 'Non-LTR Retrotransposon', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'RTE']:
 			return 'I'
 		elif annotation in ['Class II', 'Helitron', 'DIR', 'DIRS', 'P', 'Maverick', 'hAT', 'TIR', 'Mariner/Tc1', 'Harbinger', 'MuDR', 'EnSpm']:
 			return 'II'
 		else:
-			return 'Uncategorized'
+			return 'Unknown'
 
 	def determineOrder(self, annotation):
-		if annotation in ['Gypsy', 'Copia', 'LTR', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'Gymny']:
+		if annotation in ['PtOuachita', 'PtBastrop', 'PtOzark', 'PtAppalachian', 'PtAngelina', 'PtTalladega', 'PtCumberland', 'PtPineywoods', 'PtConagree', 'Gypsy', 'Copia', 'LTR', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'Gymny']:
 			return 'LTR'
 		elif annotation in ['LINE', 'L1', 'RTE']:
 			return 'LINE'
@@ -189,9 +200,9 @@ class PierRepeat(Repeat):
 			return 'Unknown'
 
 	def determineSuper(self, annotation):
-		if annotation in ['Gymny', 'Gypsy']:
+		if annotation in ['Gymny', 'Gypsy', 'IFG7', 'PtOuachita', 'PtBastrop', 'PtOzark', 'PtAppalachian', 'PtAngelina', 'PtTalladega']:
 			return 'Gypsy'
-		elif annotation in ['Copia', 'DIRS', 'Penelope', 'RTE', 'L1', 'Mariner/Tc1', 'hAT', 'Maverick', 'Helitron', 'Harbinger', 'P']:
+		elif annotation in ['PtCumberland', 'PtPineywoods', 'PtConagree', 'Copia', 'DIRS', 'Penelope', 'RTE', 'L1', 'Mariner/Tc1', 'hAT', 'Maverick', 'Helitron', 'Harbinger', 'P']:
 			return annotation
 		elif annotation == 'SINE2/tRNA':
 			return 'tRNA'
