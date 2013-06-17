@@ -127,7 +127,7 @@ class Repeat(object):
 		self.FAMILY = self.determineFamily(name)
 	
 	def __str__(self):#for debug
-		return '{:s}\n{:s}\n'.format(self.name, self.code)
+		return '{:s}: \n{:s, :s, :s, :s}\n'.format(self.NAME, self.CLASS, self.ORDER, self.SUPER, self.FAMILY)
 
 	def __eq__(self, other):
 		return self.name == other
