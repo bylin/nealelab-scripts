@@ -95,7 +95,8 @@ class denovoRepeat(object):
 		return self.cat == other
 	def __hash__(self): #used in set() function later
 		return hash(self.cat)
-
+	
+		
 class blastHit:
 	def __init__(self, data = []):
 		self.qid = data[0]#query id
@@ -116,14 +117,49 @@ class blastHit:
 		 self.sid, self.pid, self.alen, self.m, self.g, self.qstart,\
 		 self.qend, self.sstart, self.send, self.ev, self.bs)
 
-# TODO: flesh out class, order, super functions. Repbase can be tricky.
-class PierRepeat(object):
-	# Annotation examples: "Gypsy", "LTR", "Class II", "L1"
-	def __init__(self, annotation):
-		self.CLASS = self.determineClass(annotation)
-		self.ORDER = self.determineOrder(annotation)
-		self.SUPER = self.determineSuper(annotation)
+class Repeat(object):
+	def __init__(self, code, name):
+		self.NAME = name
+		self.CLASS = self.determineClass(code)
+		self.ORDER = self.determineOrder(code)
+		self.SUPER = self.determineSuper(code)
+		
+class WickerRepeat(Repeat):
+	# Example: myRepeat = WickerRepeat('RLX')
+	
+	def determineClass(self, code):
+		myClass = code[0]
+		if myClass == 'R': return 'I'
+		elif myClass == 'D': return 'II'
+		elif myClass == 'X': return 'Unknown'
+	
+	def determineOrder(self, code):
+		order = code[1]
+		if self.CLASS == 'R':
+			if order == 'X': return 'Unknown'
+			elif order == 'L': return 'LTR'
+			elif order == 'I': return 'LINE'
+			elif order == 'Y': return 'DIRS'
+			elif order == 'S': return 'SINE'
+			elif order == 'P': return 'Penelope'
+		elif self.CLASS == 'D':
+			if order == 'X': return 'Unknown'
+			elif order == 'T': return 'TIR'
+			elif order == 'Y': return 'Crypton'
+			elif order == 'H': return 'Helitron'
+			elif order == 'M': return 'Maverick'
+		elif self.CLASS == 'Uncategorized':
+			return 'Uncategorized'
+		else: return 'Unknown'
+		
+	def determineSuper(self, code):
+		super = code[2]
+		if super == 'G': return 'Gypsy'
+		elif super == 'C': return 'Copia'
 
+# TODO: flesh out class, order, super functions. Repbase can be tricky.
+class PierRepeat(Repeat):
+	# Annotation examples: "Gypsy", "LTR", "Class II", "L1"
 	def determineClass(self, annotation):
 		if annotation in ['Gypsy', 'Copia', 'LTR', 'Class I', 'Penelope', 'LINE', 'SINE', 'SINE1/7SL', 'SINE2/tRNA', 'Gymny', 'L1', 'Non-LTR Retrotransposon', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'RTE']:
 			return 'I'
@@ -166,3 +202,26 @@ class PierRepeat(object):
 		else:
 			return 'Unknown'
 
+class RepeatStats(object):
+
+	def __init__(self):
+		self.BpsByRepeatClassifs = {}
+
+	def addRepeatCopy(self, repeat, blockSize): # repeat is of type Repeat
+		for classification in [repeat.NAME, repeat.CLASS, repeat.SUPER, repeat.ORDER]:
+			if classification in self.BpsByRepeatClassifs:
+				self.BpsByRepeatClassifs[classification] += blockSize
+			else: 
+				self.BpsByRepeatClassifs[classification] = blockSize
+			
+	def __iadd__(self, repeatTuple): #overloads stats += (repeat, blockSize)
+		self.addRepeatCopy(repeatTuple[0], repeatTuple[1])
+		return self
+	
+	
+	def __str__(self):
+		outputString = ''
+		for repeat in self.BpsByRepeatClassifs:
+			repeatBps = str(self.BpsByRepeatClassifs[repeat])
+			outputString += str(repeat) + ': ' + repeatBps + ', '
+		return outputString[:-2] # truncate the trailing ', '

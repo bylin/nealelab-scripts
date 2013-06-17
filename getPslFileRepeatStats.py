@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import sys
-from classes import PierRepeat
+from classes import PierRepeat, RepeatStats
 from Bio import SeqIO
 import TupleMerger
 
@@ -15,32 +15,6 @@ def convertCSVsToBlocks(csvBlockSizes, csvStarts):
 	for blockSize, blockStart in zip(blockSizes[:-1], blockStarts[:-1]): # the last value is an empty string; raw string has a trailing comma
 		blockEnd = int(blockStart) + int(blockSize)
 		yield (int(blockStart), int(blockEnd))
-
-class RepeatStats(object):
-
-	def __init__(self):
-		self.BpsByRepeatClassifs = {}
-
-	def addRepeatCopy(self, repeat, blockSize): # repeat is of type PierRepeat
-		if repeat.CLASS in self.BpsByRepeatClassifs:
-			self.BpsByRepeatClassifs[repeat.CLASS] += blockSize
-		else: 
-			self.BpsByRepeatClassifs[repeat.CLASS] = 0
-		if repeat.SUPER in self.BpsByRepeatClassifs:
-			self.BpsByRepeatClassifs[repeat.SUPER] += blockSize
-		else: 
-			self.BpsByRepeatClassifs[repeat.SUPER] = 0
-		if repeat.ORDER in self.BpsByRepeatClassifs:
-			self.BpsByRepeatClassifs[repeat.ORDER] += blockSize
-		else: 
-			self.BpsByRepeatClassifs[repeat.ORDER] = 0
-
-	def __str__(self):
-		outputString = ''
-		for repeat in self.BpsByRepeatClassifs:
-			repeatBps = str(self.BpsByRepeatClassifs[repeat])
-			outputString += repeat + ': ' + repeatBps + ', '
-		return outputString[:-2] # truncate the trailing ', '
 
 def storePIERAnnotationsAsDict():
 	annotationDict = {}
