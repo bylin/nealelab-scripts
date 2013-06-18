@@ -281,14 +281,17 @@ class RepeatStats(object):
 			self.classes[repeat.CLASS] += blockSize
 		elif repeat.CLASS is not None:
 			self.classes[repeat.CLASS] = RepeatGroupStats(repeat.CLASS, blockSize)
+
 		if repeat.ORDER in self.orders and repeat.ORDER is not None:
 			self.orders[repeat.ORDER] += blockSize
 		elif repeat.ORDER is not None:
 			self.orders[repeat.ORDER] = RepeatGroupStats(repeat.ORDER, blockSize)
+
 		if repeat.SUPER in self.supers and repeat.SUPER is not None:
 			self.supers[repeat.SUPER] += blockSize
 		elif repeat.SUPER is not None:
-			self.orders[repeat.SUPER] = RepeatGroupStats(repeat.SUPER, blockSize)
+			self.supers[repeat.SUPER] = RepeatGroupStats(repeat.SUPER, blockSize)
+
 		if repeat.FAMILY in self.families and repeat.FAMILY is not None:
 			self.families[repeat.FAMILY] += blockSize
 		elif repeat.FAMILY is not None:
