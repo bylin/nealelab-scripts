@@ -5,6 +5,7 @@
 int the stats scritps. Many of the classes include overloaded equality, hashing
 and comparison operators to be used in the script"""
 
+import re
 from collections import defaultdict
 from Bio import SeqIO
 #used as main data structure for sequence
@@ -112,17 +113,17 @@ class Repeat(object):
 		self.FAMILY = self.determineFamily(name)
 	
 	def __str__(self):#for debug
-		return self.NAME
+		return ', '.join([self.NAME, self.CLASS, self.ORDER, self.SUPER, self.FAMILY])
 
 	def __eq__(self, other):
-		return self.name == other
+		return self.name == other.name
 
 	def __hash__(self): #used in set() function later
 		return hash(self.name)
 
 class WickerRepeat(Repeat):
 	# Example: myRepeat = WickerRepeat('RLX')
-	
+
 	def determineClass(self, code):
 		myClass = code[0]
 		if myClass == 'R': return 'I'
@@ -158,66 +159,114 @@ class WickerRepeat(Repeat):
 		super = code[2]
 		if super == 'G': return 'Gypsy'
 		elif super == 'C': return 'Copia'
+		else: return 'Unknown'
 
 	def determineFamily(self, name):
-		pieces = name.split('_')
-		return pieces[0]
+		if re.search('_[A-Z]', name):
+			return '_'.join(name.split('_')[:-1])
+		return name
 
 # TODO: flesh out class, order, super functions. Repbase can be tricky.
 class PierRepeat(Repeat):
 	# Example: myRepeat = WickerRepeat('PtPiedmont')
 	def __init__(self, name):
 		self.NAME = name
-		self.CLASS = self.determineClass(name)
-		self.ORDER = self.determineOrder(name)
-		self.SUPER = self.determineSuper(name)
 		self.FAMILY = self.determineFamily(name)
+		self.CLASS = self.determineClass(self.FAMILY)
+		self.ORDER = self.determineOrder(self.FAMILY)
+		self.SUPER = self.determineSuper(self.FAMILY)
+		
+	def determineFamily(self, name): #truncate subfamily
+		if re.search('_[A-Z]', name) and name[0:2] == 'Pt':
+			return '_'.join(name.replace('-', '_').split('_')[:-1])
+		return name
+
+	classIRE = re.compile('ifg7|tpe1|gymny|copia|corky|ouachita|piedmont|bastrop|ozark|appalachian|angelina|talladega|cumberland|pineywoods|conagree|gypsy|ltr|class I|penelope|line|sine|non-ltr|retrotransposon|endogenous retrovirus|rte|alisei|shacop|rn107|ty1_pe|piln|sc-10', re.I)
+	classIIRE = re.compile('II|helitron|dirs|mudr|maverick|enspm|harbinger|helmet', re.I)
+	ltrRE = re.compile('ifg7|ouachita|bastrop|piedmont|ozark|appalachian|angelina|talladega|cumberland|pineywoods|conagree|gypsy|copia|tpe1|corky|gymny|ltr|endogenous retrovirus|alisei|shacop|rn107|sc-10', re.I)
+	gypsyRE = re.compile('ifg7|gymny|gypsy|ouachita|piedmont|bastrop|ozark|appalachian|angelina|talladega|corky|alisei', re.I)
+	copiaRE = re.compile('cumberland|pineywoods|conagree|copia|tpe1|shacop|rn107|sc-10', re.I)
+
 
 	def determineClass(self, annotation):
-		if annotation in ['PtOuachita', 'PtBastrop', 'PtOzark', 'PtAppalachian', 'PtAngelina', 'PtTalladega', 'PtCumberland', 'PtPineywoods', 'PtConagree', 'Gypsy', 'Copia', 'LTR', 'Class I', 'Penelope', 'LINE', 'SINE', 'SINE1/7SL', 'SINE2/tRNA', 'Gymny', 'L1', 'Non-LTR Retrotransposon', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'RTE']:
+		if PierRepeat.classIRE.search(annotation) or annotation in ['L1', 'I', 'Sm1'] or re.search('COP', annotation):
 			return 'I'
-		elif annotation in ['Class II', 'Helitron', 'DIR', 'DIRS', 'P', 'Maverick', 'hAT', 'TIR', 'Mariner/Tc1', 'Harbinger', 'MuDR', 'EnSpm']:
+		elif PierRepeat.classIIRE.search(annotation) or annotation in ['II', 'DIR', 'P', 'TIR'] or re.search('hAT', annotation):
 			return 'II'
+		elif annotation in ['CENSATC4_ZM', 'TREP60', 'ATREP18']:
+			return 'SSR'
+		elif annotation == 'PtRDNA1':
+			return 'rDNA'
 		else:
 			return 'Unknown'
 
 	def determineOrder(self, annotation):
-		if annotation in ['PtOuachita', 'PtBastrop', 'PtOzark', 'PtAppalachian', 'PtAngelina', 'PtTalladega', 'PtCumberland', 'PtPineywoods', 'PtConagree', 'Gypsy', 'Copia', 'LTR', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'Gymny']:
+		if self.CLASS == 'Unknown':
+			print '!!! Unknown! ' + annotation
+		if PierRepeat.ltrRE.search(annotation) or re.search('COP', annotation):
 			return 'LTR'
-		elif annotation in ['LINE', 'L1', 'RTE']:
+		elif annotation in ['LINE', 'L1', 'RTE', 'VLINE6_VV', 'PILN1_PT']:
 			return 'LINE'
 		elif annotation in ['SINE', 'SINE1/7SL', 'SINE2/tRNA']:
 			return 'SINE'
-		elif annotation in ['hAT', 'P', 'Mariner/Tc1', 'Harbinger', 'MuDR', 'TIR']:
+		elif annotation in ['P', 'Mariner/Tc1', 'Harbinger', 'TIR'] or re.search('mudr|enspm', annotation, re.I) or re.search('hAT', annotation):
 			return 'TIR'
 		elif annotation in ['DIR', 'DIRS']:
 			return 'DIRS'
-		elif annotation == 'EnSpm':
-			return 'EnSpm'
-		elif annotation in ['Penelope', 'SINE', 'Helitron', 'Maverick']:
+		elif annotation in ['Penelope', 'Sm1']:
+			return 'Penelope'
+		elif annotation in ['Helitron', 'HELMET3']:
+			return 'Helitron'
+		elif annotation in ['SINE', 'Maverick']:
 			return annotation
-		elif annotation in ['Class I', 'Class II']:
-			return 'Unknown'
 		else:
 			return 'Unknown'
 
 	def determineSuper(self, annotation):
-		if annotation in ['Gymny', 'Gypsy', 'IFG7', 'PtOuachita', 'PtBastrop', 'PtOzark', 'PtAppalachian', 'PtAngelina', 'PtTalladega']:
+		if PierRepeat.gypsyRE.search(annotation):
 			return 'Gypsy'
-		elif annotation in ['PtCumberland', 'PtPineywoods', 'PtConagree', 'Copia', 'DIRS', 'Penelope', 'RTE', 'L1', 'Mariner/Tc1', 'hAT', 'Maverick', 'Helitron', 'Harbinger', 'P']:
+		elif PierRepeat.copiaRE.search(annotation) or re.search("COP", annotation, re.I):
+			return 'Copia'
+		elif annotation in ['DIRS', 'RTE', 'L1', 'Mariner/Tc1', 'hAT', 'Maverick', 'Helitron', 'Harbinger', 'P']:
 			return annotation
 		elif annotation == 'SINE2/tRNA':
 			return 'tRNA'
+		elif re.search('enspm', annotation, re.I):
+			return 'CACTA'
 		elif annotation == 'SINE1/7SL':
 			return '7SL'
-		elif annotation == 'MuDR':
+		elif annotation in ['Penelope', 'Sm1']:
+			return 'Penelope'
+		elif re.search('mudr', annotation, re.I):
 			return 'Mutator'
 		else:
+			if self.CLASS == 'Unknown' and self.ORDER == 'Unknown':
+				print '!!! Unknown! ' + annotation
 			return 'Unknown'
 
-	def determineFamily(self, name):
-		pieces = name.split('_')
-		return pieces[0]
+class RepeatGroupStats(object):
+
+	def __init__(self, classification, blockSize):
+		self.classification = classification
+		self.length = blockSize
+		self.nElements = 1
+	
+	def __iadd__(self, blockSize):
+		self.length += blockSize
+		self.nElements += 1
+		return self
+	
+	def getAvgLength(self):
+		self.avgLength = float(self.length)/float(self.nElements)
+
+	def __hash__(self):
+		return hash(self.classification)
+	
+	def __eq__(self, other):
+		return self.classification == other.classification
+	
+	def __str__(self):
+		return '{}\t{:d}\t{:d}'.format(self.classification, self.nElements, self.length)
 
 class RepeatStats(object):
 
@@ -231,30 +280,43 @@ class RepeatStats(object):
 		if repeat.CLASS in self.classes and repeat.CLASS is not None:
 			self.classes[repeat.CLASS] += blockSize
 		elif repeat.CLASS is not None:
-			self.classes[repeat.CLASS] = blockSize
+			self.classes[repeat.CLASS] = RepeatGroupStats(repeat.CLASS, blockSize)
 		if repeat.ORDER in self.orders and repeat.ORDER is not None:
 			self.orders[repeat.ORDER] += blockSize
 		elif repeat.ORDER is not None:
-			self.orders[repeat.ORDER] = blockSize
+			self.orders[repeat.ORDER] = RepeatGroupStats(repeat.ORDER, blockSize)
 		if repeat.SUPER in self.supers and repeat.SUPER is not None:
 			self.supers[repeat.SUPER] += blockSize
 		elif repeat.SUPER is not None:
-			self.supers[repeat.SUPER] = blockSize
+			self.orders[repeat.SUPER] = RepeatGroupStats(repeat.SUPER, blockSize)
+		if repeat.FAMILY in self.families and repeat.FAMILY is not None:
+			self.families[repeat.FAMILY] += blockSize
+		elif repeat.FAMILY is not None:
+			self.families[repeat.FAMILY] = RepeatGroupStats(repeat.FAMILY, blockSize)
 			
 	def __iadd__(self, repeatTuple): #overloads stats += (repeat, blockSize)
 		self.addRepeatCopy(repeatTuple[0], repeatTuple[1])
 		return self
 	
-	
 	def __str__(self):
-		outputString = ''
+		outputString = 'Group\tnElements\tLength\n===CLASSES===\n'
+		
 		for myClass in self.classes:
-			outputString += '{}: {:d}, '.format(myClass, self.classes[myClass])
-		outputString = outputString[:-2] + '\n'
+			outputString += '{}\n'.format(self.classes[myClass])
+		
+		outputString = outputString[:-2] + '\n===ORDERS===\n'
+	
 		for order in self.orders:
-			outputString += '{}: {:d}, '.format(order, self.orders[order])
-		outputString = outputString[:-2] + '\n'
+			outputString += '{}\n'.format(self.orders[order])
+		
+		outputString = outputString[:-2] + '\n===SUPERFAMILIES===\n'
+		
 		for mySuper in self.supers:
-			outputString += '{}: {:d}, '.format(mySuper, self.supers[mySuper])
-		outputString = outputString[:-2] + '\n'
+			outputString += '{}\n'.format(self.supers[mySuper])
+		
+#		outputString = outputString[:-2] + '\n===FAMILIES===\n'
+		
+#		for family in self.families:
+#			outputString += '{}\n'.format(self.families[family])
+		
 		return outputString
