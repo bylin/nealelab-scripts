@@ -1,13 +1,15 @@
 #!/usr/bin/python
 # Author: Brian Lin
 # Get repeat element stats from RepeatMasker GFF output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.
-import sys, re, classes, argparse, subprocess
+import sys, re, glob, classes, argparse, subprocess
 
 def main():
 	fileList = getFileList()
 	stats = classes.RepeatStats()
-	for currentFile in fileList:
+	for i, currentFile in zip(range(1, len(fileList)), fileList):
+		print 'Parsing ' + currentFile + '...'
 		addStatsFromFile(stats, currentFile)
+		print currentFile + ' finished, ' + str(len(fileList) - i) + ' files remaining'
 	print stats
 
 def getFileList():
@@ -15,8 +17,8 @@ def getFileList():
 	if args.file:
 		return [args.file]
 	elif args.directory:
-		fileList = subprocess.check_output('ls' + args.directory).split('\n')
-		return fileList[:-1]
+		fileList = glob.glob(args.directory + '/*')
+		return fileList
 	else: exit("Could not get file list")
 	
 def parseArgs():
