@@ -4,13 +4,13 @@
 
 import subprocess, argparse, os, textwrap, datetime, shutil
 global timestamp
-timestamp = 'run-'+datetime.datetime.today().strftime("%d-%m-%y-%H%m")
+timestamp = 'run-'+datetime.datetime.today().strftime("%a-%b-%Y-%H%M%S")
 
 def main():
 	args = parseArgs()
 	setUpEnv(args)
 	generateQsubScript(args)
-	cmd = 'qsub SGEWrapper.sh'
+	cmd = 'qsub '+getScriptName(args)
 	subprocess.call(cmd, shell=True)
 
 def parseArgs():
@@ -18,20 +18,21 @@ def parseArgs():
 	SGE wrapper. Contains options for qsub's built-in job arrays.
 	
 	Example usage: 
-		SGEWrapper.py -m gcc repeatmasker -cmd 'RepeatMasker input_file.fa -pa 10 -lib library_file.fa -q -nolow -gff'
+		SGEWrapper.py -m gcc repeatmasker -cmd 'RepeatMasker input_file.fa -pa 1 -lib library_file.fa -q -nolow -gff'
 	
 	or, if you want to run a command on multiple files in an input directory using SGE job arrays, 5 slots:
 		SGEWrapper.py -j -tc 5 -d [input_directory] -m repeatmasker -f library_file.fa -cmd 'RepeatMasker $INPUT_FILE -lib library_file.fa -q -nolow -gff' '''
 	argParser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=textwrap.dedent(mydesc))
 	argParser.add_argument('-j', '--use_job_array', help='Use a SGE job array', action='store_true')
-	argParser.add_argument('-tc', '--max_running_tasks', nargs=1, help='Number of concurrent jobs to run at a time')
-	argParser.add_argument('-m', '--modules', nargs='+', required=True, help='Modules to load')
-	argParser.add_argument('-d', '--input_directory', nargs=1, help='Directory containing all input files to be scheduled with the command in the job array')
+	argParser.add_argument('-tc', '--max_running_tasks', help='Number of concurrent jobs to run at a time')
+	argParser.add_argument('-d', '--input_directory', help='Directory containing all input files to be scheduled with the command in the job array')
+	argParser.add_argument('-m', '--modules', nargs='+', help='Modules to load')
 	argParser.add_argument('-f', '--extra_files', nargs='+', help='Extra files that need to be used by the program')
-	argParser.add_argument('-o', '--stdout', nargs=1, help='Standard output file', default=['SGEWrapper.stdout'])
-	argParser.add_argument('-e', '--stderr', nargs=1, help='Standard error file', default=['SGEWrapper.stderr'])
-	argParser.add_argument('-M', '--email', nargs=1, help='Email account user wishes to send job start and end notifications to')
-	argParser.add_argument('-cmd', '--command', nargs=1, required=True, help='Command to qsub')
+	argParser.add_argument('-o', '--stdout',  help='Standard output file' )
+	argParser.add_argument('-e', '--stderr',  help='Standard error file')
+	argParser.add_argument('-N', '--name',  help='Job name', default='SGEWrapper')
+	argParser.add_argument('-M', '--email', help='Email account user wishes to send job start and end notifications to')
+	argParser.add_argument('-cmd', '--command',  required=True, help='Command to qsub')
 	return argParser.parse_args()
 
 def setUpEnv(args):
@@ -48,43 +49,100 @@ def generateQsubScript(args):
 	else:
 		generateQsubSingleJobScript(args)
 
+def getName(args):
+	if args.name is not None: return args.name
+	else: return 'SGEWrapper'
+
+def getScriptName(args):
+	return getName(args)+'.sh'
+
 def generateQsubArrayScript(args):
-	outfile = file('SGEWrapper.sh', 'w')
-	inputDirectory = '../' + args.input_directory[0]
-	(inputFile, nJobs) = scanInputs(inputDirectory)
-	script = '#!/bin/bash\n# Qsub script generated from SGEWrapper.py\n#$ -S /bin/bash\n#$ -cwd\n#$ -N SGEWrapper\n#$ -q bigmem1.q\n'
-	script += '#$ -t 1-' + nJobs + '\n'
-	script += '#$ -tc ' + args.max_running_tasks[0] + '\n\n'
-	script += '#$ -o ' + args.stdout[0] + '\n'
-	script += '#$ -e ' + args.stderr[0] + '\n\n'
-	script += 'module load ' + ' '.join(args.modules) + '\n\n'
-	script += 'INPUT_FILE=`sed -n "${SGE_TASK_ID}p" ' + inputFile + '`\n'
-	script += args.command[0] + '\n'
+	outfile = file(getScriptName(args), 'w')
+	(inputFile, nJobs) = scanInputs(args)
+	script = addHeadings()
+	script += addOptionals(args)
+	script += '#$ -t 1- ' + nJobs + '\n'
+	script += addModules(args)
+	#script += 'for f in '+args.input_directory+'*\n'
+	#script += 'do\n\t'+args.command+'\ndone'
+	script += addDate()
+	script += '\nINPUT_FILE= sed -n "${SGE_TASK_ID}p" ' + inputFile + ' | ' + args.command
+	script += addDate()
 	outfile.write(script)
 
-def scanInputs(inputDirectory):
-	inputFile = 'SGEWrapperInputFiles.txt'
-	cmd = 'ls ' + inputDirectory + '/* > ' + inputFile
+def generateQsubSingleJobScript(args):
+	outfile = file(getScriptName(args), 'w')
+	script = addHeadings()
+	script += addOptionals(args)
+	script += addModules(args)
+	script += addDate()
+	script += args.command
+	script += addDate()
+	outfile.write(script)
+
+def scanInputs(args):
+	inputFile = getName(args)+'InputFiles.txt'
+	cmd = 'ls ' + args.input_directory + '/* > ' + inputFile
 	proc = subprocess.call(cmd, shell=True)
 	lineCounter = 0
 	inputFileHandle = open(inputFile)
 	nJobs = sum(lineCounter + 1 for line in inputFileHandle)
 	return(inputFile, str(nJobs))
 
-def generateQsubSingleJobScript(args):
-	outfile = file('SGEJobWrapper.sh', 'w')
-	script = '''#!/bin/bash
-	#$ -S /bin/bash
-	#$ -cwd
-	#$ -N SGEJobWrapper
-	#$ -q bigmem1.q
-	#$ -M ''' + args.email + '''
-	#$ -o ''' + args.stdout + '''
-	#$ -e ''' + args.stderr + '\n'
-	for module in args.modules:
-		script += 'module load ' + module + '\n'
-	script += args.command[0] + '\n'
-	outfile.write(script)
+def addHeadings():
+	script = '#!/bin/bash\n'
+	script += '#$ -S /bin/bash\n'
+	script += '#$ -cwd\n'
+	script += '#$ -q bigmem1.q\n'
+	return script
+
+def addOptionals(args):
+	script = ""
+	script += addEmail(args)
+	script += addName(args)
+	script += addStdout(args)
+	script += addStderr(args)
+	script += addMaxRunningTasks(args)
+	return script	
+
+def addEmail(args):
+	script = ""
+	if args.email is not None: 
+		script += '#$ -m abe\n'
+		script += '#$ -M '+args.email+'\n'
+	return script
+
+
+def addName(args):
+	script = '#$ -N '+getName(args)+'\n'
+	return script
+		
+def addStdout(args):
+	script = ""
+	if args.stdout is not None: 
+		script += '#$ -o '+args.stdout+'\n'
+	return script
+
+def addStderr(args):
+	script = ""
+	if args.stderr is not None: 
+		script += '#$ -e '+args.stderr+'\n'
+	return script
+
+def addMaxRunningTasks(args):
+	script = ""
+	if args.max_running_tasks is not None:
+		script += '#$ -tc ' + args.max_running_tasks + '\n'
+	return script
+
+def addModules(args):
+	script = ""
+	if args.modules is not  None:
+		script += '\nmodule load '+ ' '.join(args.modules)+'\n' 
+	return script
+
+def addDate():
+	return '\n\ndate\n\n'
 
 if __name__ == '__main__':
 	main()
