@@ -6,7 +6,7 @@ import sys, re, glob, classes, argparse, subprocess
 def main():
 	fileList = getFileList()
 	stats = classes.RepeatStats()
-	for i, currentFile in zip(range(1, len(fileList)), fileList):
+	for i, currentFile in zip(range(1, len(fileList)+1), fileList):
 		print 'Parsing ' + currentFile + '...'
 		addStatsFromFile(stats, currentFile)
 		print currentFile + ' finished, ' + str(len(fileList) - i) + ' files remaining'
@@ -46,7 +46,7 @@ def parseLineIntoRepeatTuple(line):
 # check if re.match is faster than array matching
 def buildRepeatFromName(repeatName):
 	# if not a Wicker annotation: use PierRepeat().
-	isWicker = repeatName[0:2] == 'Pt' and (repeatName[5] == '_' or (len(repeatName) > 5 and repeatName[2:6] in ['noCa', 'Pote', 'rRna', 'SSR']))
+	isWicker = repeatName[0:2] == 'Pt' and (repeatName[5] == '_' or (len(repeatName) > 5 and repeatName[2:6] in ['NoCa', 'Pote', 'rRna', 'SSR']))
 	if isWicker:
 		code = repeatName[2:].split('_')[0]
 		repeat = classes.WickerRepeat(code, repeatName)
