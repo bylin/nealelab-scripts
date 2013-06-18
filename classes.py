@@ -128,25 +128,26 @@ class WickerRepeat(Repeat):
 		if myClass == 'R': return 'I'
 		elif myClass == 'D': return 'II'
 		elif myClass == 'X': return 'Confused'
-		elif code in ['PotentialHostGene', 'noCat', 'rRNA']: return code
+		elif code in ['PotentialHostGene', 'NoCat', 'rRNA', 'SSR']:
+			return code
 	
 	def determineOrder(self, code):
-		myClass = code[1]
+		myClass = self.CLASS
 		order = code[1]
-		if myClass == 'R':
+		if myClass == 'I':
 			if order == 'X': return 'Unknown'
 			elif order == 'L': return 'LTR'
 			elif order == 'I': return 'LINE'
 			elif order == 'Y': return 'DIRS'
 			elif order == 'S': return 'SINE'
 			elif order == 'P': return 'Penelope'
-		elif myClass == 'D':
+		elif myClass == 'II':
 			if order == 'X': return 'Unknown'
 			elif order == 'T': return 'TIR'
 			elif order == 'Y': return 'Crypton'
 			elif order == 'H': return 'Helitron'
 			elif order == 'M': return 'Maverick'
-		elif myClass in ['Confused', 'PotentialHostGene', 'noCat', 'rRNA']:
+		elif myClass in ['Confused', 'PotentialHostGene', 'NoCat', 'rRNA', 'SSR']:
 			return 'Unknown'
 		else:
 			print self
@@ -165,6 +166,12 @@ class WickerRepeat(Repeat):
 # TODO: flesh out class, order, super functions. Repbase can be tricky.
 class PierRepeat(Repeat):
 	# Example: myRepeat = WickerRepeat('PtPiedmont')
+	def __init__(self, name):
+		self.NAME = name
+		self.CLASS = self.determineClass(name)
+		self.ORDER = self.determineOrder(name)
+		self.SUPER = self.determineSuper(name)
+		self.FAMILY = self.determineFamily(name)
 
 	def determineClass(self, annotation):
 		if annotation in ['PtOuachita', 'PtBastrop', 'PtOzark', 'PtAppalachian', 'PtAngelina', 'PtTalladega', 'PtCumberland', 'PtPineywoods', 'PtConagree', 'Gypsy', 'Copia', 'LTR', 'Class I', 'Penelope', 'LINE', 'SINE', 'SINE1/7SL', 'SINE2/tRNA', 'Gymny', 'L1', 'Non-LTR Retrotransposon', 'LTR Retrotransposon', 'Endogenous Retrovirus', 'RTE']:
@@ -215,14 +222,24 @@ class PierRepeat(Repeat):
 class RepeatStats(object):
 
 	def __init__(self):
-		self.BpsByRepeatClassifs = {}
+		self.classes = {}
+		self.orders = {}
+		self.supers = {}
+		self.families = {}
 
 	def addRepeatCopy(self, repeat, blockSize): # repeat is of type Repeat
-		for classification in [repeat.NAME, repeat.CLASS, repeat.SUPER, repeat.ORDER]:
-			if classification in self.BpsByRepeatClassifs:
-				self.BpsByRepeatClassifs[classification] += blockSize
-			else: 
-				self.BpsByRepeatClassifs[classification] = blockSize
+		if repeat.CLASS in self.classes and repeat.CLASS is not None:
+			self.classes[repeat.CLASS] += blockSize
+		elif repeat.CLASS is not None:
+			self.classes[repeat.CLASS] = blockSize
+		if repeat.ORDER in self.orders and repeat.ORDER is not None:
+			self.orders[repeat.ORDER] += blockSize
+		elif repeat.ORDER is not None:
+			self.orders[repeat.ORDER] = blockSize
+		if repeat.SUPER in self.supers and repeat.SUPER is not None:
+			self.supers[repeat.SUPER] += blockSize
+		elif repeat.SUPER is not None:
+			self.supers[repeat.SUPER] = blockSize
 			
 	def __iadd__(self, repeatTuple): #overloads stats += (repeat, blockSize)
 		self.addRepeatCopy(repeatTuple[0], repeatTuple[1])
@@ -231,7 +248,13 @@ class RepeatStats(object):
 	
 	def __str__(self):
 		outputString = ''
-		for repeat in self.BpsByRepeatClassifs:
-			repeatBps = str(self.BpsByRepeatClassifs[repeat])
-			outputString += str(repeat) + ': ' + repeatBps + ', '
-		return outputString[:-2] # truncate the trailing ', '
+		for myClass in self.classes:
+			outputString += '{}: {:d}, '.format(myClass, self.classes[myClass])
+		outputString = outputString[:-2] + '\n'
+		for order in self.orders:
+			outputString += '{}: {:d}, '.format(order, self.orders[order])
+		outputString = outputString[:-2] + '\n'
+		for mySuper in self.supers:
+			outputString += '{}: {:d}, '.format(mySuper, self.supers[mySuper])
+		outputString = outputString[:-2] + '\n'
+		return outputString
