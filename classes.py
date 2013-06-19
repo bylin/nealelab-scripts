@@ -177,15 +177,18 @@ class PierRepeat(Repeat):
 		self.SUPER = self.determineSuper(self.FAMILY)
 		
 	def determineFamily(self, name): #truncate subfamily
+		family = name
 		if re.search('_[A-Z]', name) and name[0:2] == 'Pt':
-			return '_'.join(name.replace('-', '_').split('_')[:-1])
-		return name
-
-	classIRE = re.compile('ifg7|tpe1|gymny|copia|corky|ouachita|piedmont|bastrop|ozark|appalachian|angelina|talladega|cumberland|pineywoods|conagree|gypsy|ltr|class I|penelope|line|sine|non-ltr|retrotransposon|endogenous retrovirus|rte|alisei|shacop|rn107|ty1_pe|piln|sc-10', re.I)
-	classIIRE = re.compile('II|helitron|dirs|mudr|maverick|enspm|harbinger|helmet', re.I)
-	ltrRE = re.compile('ifg7|ouachita|bastrop|piedmont|ozark|appalachian|angelina|talladega|cumberland|pineywoods|conagree|gypsy|copia|tpe1|corky|gymny|ltr|endogenous retrovirus|alisei|shacop|rn107|sc-10', re.I)
-	gypsyRE = re.compile('ifg7|gymny|gypsy|ouachita|piedmont|bastrop|ozark|appalachian|angelina|talladega|corky|alisei', re.I)
-	copiaRE = re.compile('cumberland|pineywoods|conagree|copia|tpe1|shacop|rn107|sc-10', re.I)
+			family = '_'.join(name.replace('-', '_').split('_')[:-1])
+		if re.search('RLG', name):
+			family = 'Gymny'
+		return family
+	unknowns = {}
+	classIRE = re.compile('ifg7|tpe1|gymny|copia|corky|ouachita|piedmont|bastrop|ozark|appalachian|angelina|talladega|cumberland|pineywoods|conagree|gypsy|ltr|class I|penelope|line|sine|non-ltr|retrotransposon|endogenous retrovirus|rte|alisei|shacop|rn107|ty1_pe|piln|sc-10|rt_gb|crm_int', re.I)
+	classIIRE = re.compile('II|helitron|dirs|mudr|maverick|enspm|harbinger|helmet|cacta', re.I)
+	ltrRE = re.compile('ifg7|ouachita|bastrop|piedmont|ozark|appalachian|angelina|talladega|cumberland|pineywoods|conagree|gypsy|copia|tpe1|corky|gymny|ltr|endogenous retrovirus|alisei|shacop|rn107|sc-10|rt_gb|crm_int', re.I)
+	gypsyRE = re.compile('ifg7|gymny|gypsy|ouachita|piedmont|bastrop|ozark|appalachian|angelina|talladega|corky|alisei|crm_int', re.I)
+	copiaRE = re.compile('cumberland|pineywoods|conagree|copia|tpe1|shacop|rn107|sc-10|rt_gb', re.I)
 
 
 	def determineClass(self, annotation):
@@ -201,15 +204,13 @@ class PierRepeat(Repeat):
 			return 'Unknown'
 
 	def determineOrder(self, annotation):
-		if self.CLASS == 'Unknown':
-			print '!!! Unknown! ' + annotation
 		if PierRepeat.ltrRE.search(annotation) or re.search('COP', annotation):
 			return 'LTR'
-		elif annotation in ['LINE', 'L1', 'RTE', 'VLINE6_VV', 'PILN1_PT']:
+		elif annotation == 'L1' or re.search('piln|line|rte', annotation, re.I):
 			return 'LINE'
 		elif annotation in ['SINE', 'SINE1/7SL', 'SINE2/tRNA']:
 			return 'SINE'
-		elif annotation in ['P', 'Mariner/Tc1', 'Harbinger', 'TIR'] or re.search('mudr|enspm', annotation, re.I) or re.search('hAT', annotation):
+		elif annotation in ['P', 'Mariner/Tc1', 'Harbinger', 'TIR'] or re.search('mudr|cacta|enspm', annotation, re.I) or re.search('hAT', annotation):
 			return 'TIR'
 		elif annotation in ['DIR', 'DIRS']:
 			return 'DIRS'
@@ -225,13 +226,19 @@ class PierRepeat(Repeat):
 	def determineSuper(self, annotation):
 		if PierRepeat.gypsyRE.search(annotation):
 			return 'Gypsy'
-		elif PierRepeat.copiaRE.search(annotation) or re.search("COP", annotation, re.I):
+		elif PierRepeat.copiaRE.search(annotation) or re.search("COP", annotation, re.I) or annotation == 'TY1_PE':
 			return 'Copia'
-		elif annotation in ['DIRS', 'RTE', 'L1', 'Mariner/Tc1', 'hAT', 'Maverick', 'Helitron', 'Harbinger', 'P']:
+		elif re.search('hAT', annotation, re.I):
+			return 'hAT'
+		elif annotation in ['L1', 'LINE1-23_ZM', 'LINE1-71_SBi', 'SHALINE17_MT']:
+			return 'L1'
+		elif annotation in ['DIRS', 'RTE', 'L1', 'Mariner/Tc1', 'Maverick', 'Harbinger', 'P']:
 			return annotation
+		elif annotation in ['Helitron', 'HELMET3']:
+			return 'Helitron'
 		elif annotation == 'SINE2/tRNA':
 			return 'tRNA'
-		elif re.search('enspm', annotation, re.I):
+		elif re.search('enspm|cacta', annotation, re.I):
 			return 'CACTA'
 		elif annotation == 'SINE1/7SL':
 			return '7SL'
@@ -239,9 +246,12 @@ class PierRepeat(Repeat):
 			return 'Penelope'
 		elif re.search('mudr', annotation, re.I):
 			return 'Mutator'
+		elif re.search('piln', annotation, re.I) or annotation in ['LINE1-31_SBi', 'HELITRON7_OS']:
+			return 'Unknown'
 		else:
-			if self.CLASS == 'Unknown' and self.ORDER == 'Unknown':
-				print '!!! Unknown! ' + annotation
+			if annotation not in PierRepeat.unknowns: 
+				PierRepeat.unknowns[annotation] = 0
+				print annotation
 			return 'Unknown'
 
 class RepeatGroupStats(object):
