@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #Author: Jacob Zieve
 import sys
+from pickler import sendToPickleJar, getFromPickleJar
 from classes import trfHit
 from collections import defaultdict
 from operator import itemgetter, attrgetter
@@ -35,7 +36,6 @@ def greedyOverlapFiltering(hitsDict):
 			if seqs[i].start >= f:
 				tandems.append(seqs[i])
 				f = seqs[i].end
-	
 	return tandems
 
 def getPeriodFreqs(tandems):
@@ -55,14 +55,21 @@ def printCumulativeBpByPeriodRange(tandems,prange):
 	print "Between {:d} and {:d}:\t{:d}".format(prange[0],prange[1],getCumulativeBpByPeriodRange(tandems,(prange[0],prange[1])))
 
 def main():
-	tandems = greedyOverlapFiltering(parse_dat(sys.argv[1]))
-#	printPeriodFreqs(tandems)
-	printCumulativeBpByPeriodRange(tandems,(2,9))
-	printCumulativeBpByPeriodRange(tandems,(10,101))
-	printCumulativeBpByPeriodRange(tandems,(102,501))
-#	print getCumulativeBpByPeriodRange(tandems,(2,8))
-#	print getCumulativeBpByPeriodRange(tandems,(9,100))
-#	print getCumulativeBpByPeriodRange(tandems,(101,500))
+#	tandems = greedyOverlapFiltering(parse_dat(sys.argv[1]))
+#	sendToPickleJar(tandems,'Ptaeda_trf.txt')
+#	sendToPickleJar(tandems,'Pglauca_trf.txt')
+#	sendToPickleJar(tandems,'Pabies_trf.txt')
+#	tandems = getFromPickleJar('Ptaeda_trf.txt')
+	tandems = getFromPickleJar('Pglauca_trf.txt')
+#	tandems = getFromPickleJar('Pabies_trf.txt')
+#	printPeriodFreqs(tandems)	
+	printCumulativeBpByPeriodRange(tandems,(2,3))
+	printCumulativeBpByPeriodRange(tandems,(21,22))
+	printCumulativeBpByPeriodRange(tandems,(102,103))
+	
+	#printCumulativeBpByPeriodRange(tandems,(2,9))
+#	printCumulativeBpByPeriodRange(tandems,(10,101))
+#	printCumulativeBpByPeriodRange(tandems,(102,501))
 		
 if __name__=="__main__":
 	main()
