@@ -1,7 +1,10 @@
 #!/usr/bin/python
 from Bio import SeqIO
 from Bio import SeqRecord
+from Bio.SeqUtils import GC
 from classes import repBaseRepeat
+from subprocess import PIPE,Popen
+from pickler import sendToPickleJar,getFromPickleJar
 import re,pickler
 
 # ExtendedSeqIO.py
@@ -13,51 +16,84 @@ class ExtendedFile(file):
 		self.seek(0)
 
 class ExtendedFastaFile(ExtendedFile):
-##def n50(len_list):
-#	cumulative = 0
-#        for s in sorted(len_list):
-#                cumulative += s
-#                if (cumulative >= (sum(len_list)/2.0)):
-#                        return s
-#
-#def len_sequences(fasta_file):
-#        sanity_check(fasta_file)
-#        len_dict = {}
-#        for seq_record in SeqIO.parse(fasta_file, "fasta"):
-##               if len(seq_record)-seq_record.seq.count("N")==75791 or \
-##               len(seq_record)-seq_record.seq.count("N")==67475:
-##                       print ">"+seq_record.id
-##                       print seq_record.seq
-##                       print "\n"
-#                len_dict[seq_record.id]=len(seq_record)-seq_record.seq.upper().count("N")#omits unknown bases
-##       print sorted(len_dict.values())[len(len_dict.values())-1]
-##       print sorted(len_dict.values())[len(len_dict.values())-2]
-#        return len_dict
-#	
-#def nucl_lengths(fasta_file):
-#        sanity_check(fasta_file)
-#        A_count = []
-#        C_count = []
-#        T_count = []
-#        G_count = []
-#        N_count = []
-#        seq_count = 0
-#
-#        for seq_record in SeqIO.parse(fasta_file, "fasta"):
-#                seq_count += 1
-#                seq = seq_record.seq.upper()
-#                #print seq_record.id#the header (e.g. >fasta_name...)
-#                #print repr(seq_record.seq)#how its represented with biopython
-#                A_count.append(seq.count("A"))
-#                C_count.append(seq.count("C"))
-#                T_count.append(seq.count("T"))
-#                G_count.append(seq.count("G"))
-#
-#        return(A_count,C_count,T_count,G_count)
-#
+
 	def seqRecordList(self):
 		return SeqIO.parse(self, 'fasta')
+
+	def printSeqsStats(self):
+		self.printNumSeqs()
+		self.printAvgSeqLen()
+		self.printMedSeqLen()
+		self.printN50()
+		self.printShortestSeqLen()
+		self.printLongestSeqLen()
+		self.printTotalBp()
+		self.printAvgGCcontent()
 	
+	def printNumSeqs(self):
+		print 'Number of sequences:\t{:,d}'.format(self.getNumSeqs())
+	
+	def getNumSeqs(self):
+		num = sum(1 for seq in self.seqRecordList())
+		self.resetFilePointer()
+		return num
+	
+	def printAvgSeqLen(self):
+		print 'Average sequence length:\t{:,d}'.format(self.getAvgSeqLen())
+	
+	def getSeqLens(self):
+		lenList = [len(seq) for seq in self.seqRecordList()]
+		self.resetFilePointer()
+		return lenList
+
+	def getAvgSeqLen(self):
+		total = sum(self.getSeqLens())
+		num = self.getNumSeqs()
+		return  total/num
+	
+	def printMedSeqLen(self):
+		print 'Median sequence length:\t{:,d}'.format(self.getMedSeqLen())
+
+	def getMedSeqLen(self):
+		return sorted(self.getSeqLens())[self.getNumSeqs()/2]
+
+	def printN50(self):
+		print 'N50:\t{:d}'.format(self.getN50())
+			
+	def getN50(self):
+		cumulative = 0
+		lenList = self.getSeqLens()
+		for s in sorted(lenList):
+			cumulative += s
+			if (cumulative >= (sum(lenList)/2.0)):
+				return s
+			
+	def printShortestSeqLen(self):
+		print 'Shortest sequence length:\t{:,d}'.format(self.getShortestSeqLen())
+	
+	def getShortestSeqLen(self):
+		return sorted(self.getSeqLens())[0]
+
+	def printLongestSeqLen(self):
+		print 'Longest sequence length:\t{:,d}'.format(self.getLongestSeqLen())
+	
+	def getLongestSeqLen(self):
+		return sorted(self.getSeqLens(),reverse=True)[0]
+
+	def printTotalBp(self):
+		print 'Total bp:\t{:,d}'.format(self.getTotalBp())
+
+	def getTotalBp(self):
+		return sum(self.getSeqLens())	
+			
+	def printAvgGCcontent(self):
+		print 'Average GC content:\t{:.2f}%'.format(self.getAvgGCcontent())
+		
+	def getAvgGCcontent(self):
+		gc = sum(GC(seq.seq) for seq in self.seqRecordList())
+		self.resetFilePointer()
+		return gc/self.getNumSeqs()
+		
 	def getSeqUsingId(self, id):
 		mySeq = None
 		for seq in self.seqRecordList():
@@ -148,13 +184,6 @@ class ExtendedEMBLFile(ExtendedFile):
 				length = int(fields[2])
 		order = self.getOrder(superfamily)
 		_class = self.getClass(order)
-#		print name
-#		print accession
-#		print superfamily
-#		print order
-#		print _class
-#		print species
-#		print length
 		return (name,repBaseRepeat(name,accession,superfamily,order,_class,species,length))
 	
 	def getOrder(self,superfamily):
@@ -202,8 +231,10 @@ class ExtendedEMBLFile(ExtendedFile):
 def main():
 	#repBase = ExtendedEMBLFile('/home/jjzieve/Pita_Genome-0.9_Repeats/databases/RepBase18.03.embl/all.ref').parse()
 	#pickler.sendToPickleJar(repBase,'repBaseDict.pkl')
-	repBase = pickler.getFromPickleJar('repBaseDict.pkl')
-	for k,v in repBase.items(): print k 
+	#repBase = pickler.getFromPickleJar('repBaseDict.pkl')
+	#print len(repBase) 
+	fasta = ExtendedFastaFile('/home/jjzieve/Pita_Genome-0.9_Repeats/databases/RepBase18.03.fasta/all.ref')
+	fasta.printSeqsStats()
 
 if __name__=="__main__":
 	main()
