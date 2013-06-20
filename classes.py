@@ -41,17 +41,17 @@ class trfHit():
 		return hash(self.sequence)
 
 class repBaseRepeat:
-	def __init__(self,name, accession, family, species, taxonomy, length):
+	def __init__(self,name, accession, superfamily, order, _class, species, length):
 		self.name = name
 		self.accession = accession
-		self.family = family
+		self.superfamily = superfamily
+		self.order = order
+		self._class = _class
 		self.species = species
-		self.taxonomy = taxonomy
 		self.length = length
 	def __str__(self):
-		return "name: "+self.name+"\nac: "+self.accession+"\nfam: "+self.family+"\n\
-		sp: "+self.species+"\ntax: "+self.taxonomy+"len: "\
-		+self.length+"\n"
+		return "name: "+self.name+"\nac: "+self.accession+"\nfam: "+self.superfamily+"\n\
+		sp: "+self.species+"\nlen: "+str(self.length)+"\n"
 
 class censorRepeat(object):# (object) allows for type checking, will return censorRepeat rather than instance
 	def __init__(self,Data = []):
