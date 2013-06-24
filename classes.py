@@ -9,7 +9,7 @@ from collections import defaultdict
 from Bio import SeqIO
 #used as main data structure for sequence
 	
-class trfHit():
+class trfHit:
 	def __init__(self, Data=[]):
 		self.seq_name = Data[0]
 		self.start = int(Data[1]) #Intrices of the repeat relative to the start of the sequence 
