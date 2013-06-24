@@ -22,14 +22,14 @@ def parse_dat(dat_file):
 		if line != "" and line.split()[0].isdigit():
 			fields = line.split()
 			fields.insert(0,seq_name)
-			hitsDict[seq_name].append((trfHit(fields)))
+			hitsDict[seq_name].append(trfHit(fields))
 
 	return hitsDict
 
 def greedyOverlapFiltering(hitsDict):
 	tandems = []
 	for seq_name in hitsDict.keys():
-		seqs=sorted(hitsDict[seq_name],key=attrgetter('end'), reverse=True)
+		seqs=sorted(hitsDict[seq_name],key=attrgetter('end'))
 		tandems.append(seqs[0])
 		f = seqs[0].end
 		for i in range(1,len(seqs)):
@@ -55,11 +55,11 @@ def printCumulativeBpByPeriodRange(tandems,prange):
 	print "Between {:d} and {:d}:\t{:d}".format(prange[0],prange[1],getCumulativeBpByPeriodRange(tandems,(prange[0],prange[1])))
 
 def main():
-#	tandems = greedyOverlapFiltering(parse_dat(sys.argv[1]))
+	tandems = greedyOverlapFiltering(parse_dat(sys.argv[1]))
 #	sendToPickleJar(tandems,'Ptaeda_trf.pkl')
 #	sendToPickleJar(tandems,'Pglauca_trf.pkl')
 #	sendToPickleJar(tandems,'Pabies_trf.pkl')
-	tandems = getFromPickleJar('Ptaeda_trf.pkl')
+#	tandems = getFromPickleJar('Ptaeda_trf.pkl')
 #	tandems = getFromPickleJar('Pglauca_trf.pkl')
 #	tandems = getFromPickleJar('Pabies_trf.pkl')
 #

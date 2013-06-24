@@ -5,7 +5,7 @@ from Bio.SeqUtils import GC
 from classes import repBaseRepeat
 from subprocess import PIPE,Popen
 from pickler import sendToPickleJar,getFromPickleJar
-import re,pickler
+import re,pickler,sys
 
 # ExtendedSeqIO.py
 # Author: Brian Lin
@@ -233,7 +233,7 @@ def main():
 	#pickler.sendToPickleJar(repBase,'repBaseDict.pkl')
 	#repBase = pickler.getFromPickleJar('repBaseDict.pkl')
 	#print len(repBase) 
-	fasta = ExtendedFastaFile('/home/jjzieve/Pita_Genome-0.9_Repeats/databases/RepBase18.03.fasta/all.ref')
+	fasta = ExtendedFastaFile(sys.argv[1])
 	fasta.printSeqsStats()
 
 if __name__=="__main__":
