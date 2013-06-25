@@ -2,8 +2,9 @@
 # Author: Brian Lin
 # Get repeat element stats from RepeatMasker GFF output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.
 import sys, re, glob, classes, argparse, subprocess, pickle
+from pickler import getFromPickleJar
 
-pickledRepbaseFile = open('/home/taylor/Pita_Genome-0.9_Repeats/pickle_jar/repBaseDict.pkl', 'rb')
+pickledRepbaseFile = '/home/taylor/Pita_Genome-0.9_Repeats/pickle_jar/repBaseDict.pkl'
 
 def main():
 	fileList = getFileList()
@@ -61,7 +62,7 @@ def buildRepeatFromName(repeatName):
 	return repeat
 
 class RepbaseMatcher(object):
-	repbase = pickle.load(pickledRepbaseFile)
+	repbase = getFromPickleJar(pickledRepbaseFile)
 	def isRepbaseRepeat(self, repeatName):
 		if repeatName in self.repbase:
 			return True
