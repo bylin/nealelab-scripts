@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # Author: Brian Lin
 # Get repeat element stats from RepeatMasker GFF output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.
-import sys, re, glob, classes, argparse, subprocess
+import sys, re, glob, classes, argparse, subprocess, pickle
+
+pickledRepbaseFile = open('/home/taylor/Pita_Genome-0.9_Repeats/pickle_jar/repBaseDict.pkl', 'rb')
 
 def main():
 	fileList = getFileList()
@@ -46,13 +48,28 @@ def parseLineIntoRepeatTuple(line):
 # check if re.match is faster than array matching
 def buildRepeatFromName(repeatName):
 	# if not a Wicker annotation: use PierRepeat().
-	isWicker = repeatName[0:2] == 'Pt' and (repeatName[5] == '_' or (len(repeatName) > 5 and repeatName[2:6] in ['NoCa', 'Pote', 'rRna', 'SSR']))
+	isWicker = repeatName[0:2] == 'Pt' and (repeatName[5] == '_' or (len(repeatName) > 5 and (repeatName[2:6] in ['NoCa', 'Pote', 'RDNA'] or repeatName[2:5] == 'SSR')))
+	matcher = RepbaseMatcher()
 	if isWicker:
 		code = repeatName[2:].split('_')[0]
 		repeat = classes.WickerRepeat(code, repeatName)
+	elif matcher.isRepbaseRepeat(repeatName):
+		rawRepeat = matcher.match(repeatName)
+		repeat = classes.conversion(rawRepeat)
 	else:
 		repeat = classes.PierRepeat(repeatName)
 	return repeat
+
+class RepbaseMatcher(object):
+	repbase = pickle.load(pickledRepbaseFile)
+	def isRepbaseRepeat(self, repeatName):
+		if repeatName in self.repbase:
+			return True
+		else:
+			return False
+
+	def match(self, repeatName):
+		return self.repbase[repeatName]
 
 if __name__ == '__main__':
 	main()
