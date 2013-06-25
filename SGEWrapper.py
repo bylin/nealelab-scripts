@@ -4,7 +4,7 @@
 
 import subprocess, argparse, os, textwrap, datetime, shutil
 global timestamp
-timestamp = 'run-'+datetime.datetime.today().strftime("%a-%b-%Y-%H%M%S")
+timestamp = 'run-'+datetime.datetime.today().strftime("%a-%b-%d-%Y-%H%M%S")
 
 def main():
 	args = parseArgs()
