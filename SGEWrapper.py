@@ -28,8 +28,8 @@ def parseArgs():
 	argParser.add_argument('-d', '--input_directory', help='Directory containing all input files to be scheduled with the command in the job array')
 	argParser.add_argument('-m', '--modules', nargs='+', help='Modules to load')
 	argParser.add_argument('-f', '--extra_files', nargs='+', help='Extra files that need to be used by the program')
-	argParser.add_argument('-o', '--stdout',  help='Standard output file' )
-	argParser.add_argument('-e', '--stderr',  help='Standard error file')
+	argParser.add_argument('-o', '--stdout',  help='Standard output file', default='SGEWrapper.stdout')
+	argParser.add_argument('-e', '--stderr',  help='Standard error file', default='SGEWrapper.stderr')
 	argParser.add_argument('-N', '--name',  help='Job name', default='SGEWrapper')
 	argParser.add_argument('-M', '--email', help='Email account user wishes to send job start and end notifications to')
 	argParser.add_argument('-cmd', '--command',  required=True, help='Command to qsub')
@@ -61,12 +61,13 @@ def generateQsubArrayScript(args):
 	(inputFile, nJobs) = scanInputs(args)
 	script = addHeadings()
 	script += addOptionals(args)
-	script += '#$ -t 1- ' + nJobs + '\n'
+	script += '#$ -t 1-' + nJobs + '\n'
 	script += addModules(args)
 	#script += 'for f in '+args.input_directory+'*\n'
 	#script += 'do\n\t'+args.command+'\ndone'
 	script += addDate()
-	script += '\nINPUT_FILE= sed -n "${SGE_TASK_ID}p" ' + inputFile + ' | ' + args.command
+	script += 'INPUT_FILE=`sed -n "${SGE_TASK_ID}p" ' + inputFile + '`\n'
+	script += args.command + '\n'
 	script += addDate()
 	outfile.write(script)
 
@@ -82,7 +83,7 @@ def generateQsubSingleJobScript(args):
 
 def scanInputs(args):
 	inputFile = getName(args)+'InputFiles.txt'
-	cmd = 'ls ' + args.input_directory + '/* > ' + inputFile
+	cmd = 'ls ../' + args.input_directory + '/* > ' + inputFile
 	proc = subprocess.call(cmd, shell=True)
 	lineCounter = 0
 	inputFileHandle = open(inputFile)
@@ -138,13 +139,12 @@ def addMaxRunningTasks(args):
 def addModules(args):
 	script = ""
 	if args.modules is not  None:
-		script += '\nmodule load '+ ' '.join(args.modules)+'\n' 
+		script += 'module load '+ ' '.join(args.modules)+'\n' 
 	return script
 
 def addDate():
-	return '\n\ndate\n\n'
+	return '\ndate\n'
 
 if __name__ == '__main__':
 	main()
 
-#RepeatMasker [input] -pa 10 -lib pier-1.3.fa (-q) -nolow -gff
