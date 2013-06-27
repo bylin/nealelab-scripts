@@ -1,10 +1,12 @@
 #!/usr/bin/python
 # Author: Brian Lin
-# Get repeat element stats from RepeatMasker GFF output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.
-import sys, re, glob, classes, argparse, subprocess, pickle
+# Get repeat element stats from redundant RepeatMasker .out output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.
+# Need to sort .out file by S-W score before running!
+import sys, re, glob, classes, argparse, subprocess, pickle, bitwiseSeq
 from pickler import getFromPickleJar
 
-pickledRepbaseFile = '/home/taylor/Pita_Genome-0.9_Repeats/pickle_jar/repBaseDict.pkl'
+pickledRepbaseFile = 'repBaseDict.pkl'
+pickledRawSequenceFile = 'bitwiseRawSeqs.pkl'
 
 def main():
 	fileList = getFileList()
@@ -40,9 +42,13 @@ def addStatsFromFile(stats, fileHandle):
 		stats += parseLineIntoRepeatTuple(line)
 
 def parseLineIntoRepeatTuple(line):
-	parsedLine = line.strip().split('\t')[8][14:].split(' ')
-	repeatName = parsedLine[0][:-1]
-	blockSize = int(parsedLine[2]) - int(parsedLine[1]) + 1
+	tabs = re.findall('\W+', line)
+	repeatName = tabs[9]
+	rawSeqName = tabs[4]
+	block = (int(tabs[5]), int(tabs[6]))
+	tracker = RawSeqTracker()
+	difference = tracker.addBlockReturnDifference(rawSeqName, block)
+	blockSize = block[1] - block[0] - difference
 	repeat = buildRepeatFromName(repeatName)
 	return (repeat, blockSize)
 
@@ -62,7 +68,8 @@ def buildRepeatFromName(repeatName):
 	return repeat
 
 class RepbaseMatcher(object):
-	repbase = getFromPickleJar(pickledRepbaseFile)
+	repbase = getFromPickleJar(pickledRepbaseFile) # dict containing repBaseRepeat objects
+	
 	def isRepbaseRepeat(self, repeatName):
 		if repeatName in self.repbase:
 			return True
@@ -71,6 +78,13 @@ class RepbaseMatcher(object):
 
 	def match(self, repeatName):
 		return self.repbase[repeatName]
+
+class RawSeqTracker(object):
+	rawSeqs = getFromPickleJar(pickledRawSequenceFile) # dict containing bitwise seqs
+	
+	def addBlockReturnDifference(self, name, block):
+		rawSeqs[name] += block
+		return rawSeqs[name].findBlockDifference(block)
 
 if __name__ == '__main__':
 	main()
