@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Author: Brian Lin
+# Author: Brian Lin, Jacob Zieve
 # SGE wrapper. Generates a helper file and runs it.
 
 import subprocess, argparse, os, textwrap, datetime, shutil
