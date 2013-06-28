@@ -50,17 +50,8 @@ def countFlippedBits(bitint): #counts number of flipped bits in O(n), n = # of f
 def convertIntToBitint(number):
 	return (pow(2, number - 1))
 
-
 def convertBlockToBitint(block):
 	(start, end) = block
-	bitstring = ''
-	for i in range(start - 1, end):
-		bitstring += '1'
-		i += 1
-	for i in range(0, start):
-		bitstring += '0'
-	return int(bitstring, 2)
-
-def convertBlockToBitint2(block):
-	(start, end) = block
-	return sum(convertIntToBitint(base) for base in range(start, end))
+	left = pow(2, end-1)
+	right = pow(2, start-1)
+	return left-right
