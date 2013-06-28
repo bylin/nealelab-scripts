@@ -201,5 +201,5 @@ class RepeatStats(object):
 		
 #		for family in self.families:
 #			outputString += '{}\n'.format(self.families[family])
-		outputString += '\n===TOTAL===\n\t{}\t{}'.format(self.nSeqs, self.totalLength)
+		outputString += '\n===TOTAL===\n\t{}\t{}\n'.format(self.nSeqs, self.totalLength)
 		return outputString
