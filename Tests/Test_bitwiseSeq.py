@@ -26,13 +26,23 @@ class Test_bitwiseSeq(unittest.TestCase):
 		result = convertIntToBitint(21000)
 		answer = pow(2, 20999)
 		self.assertEqual(result, answer)
-
+	
+	@profile
+	def test_convertBlockToBitint2(self):
+		result = convertBlockToBitint2((2, 5))
+		self.assertEqual(result, 14)
+		result = convertBlockToBitint2((12, 20))
+		self.assertEqual(result, 522240)
+	@profile
+	def test_convertEmptyBlockToBitint2(self):
+		result = convertBlockToBitint2((4, 4))
+	@profile
 	def test_convertBlockToBitint(self):
 		result = convertBlockToBitint((2, 5))
 		self.assertEqual(result, 14)
 		result = convertBlockToBitint((12, 20))
 		self.assertEqual(result, 522240)
-
+	@profile
 	def test_convertEmptyBlockToBitint(self):
 		result = convertBlockToBitint((4, 4))
 		self.assertEqual(result, 0)
