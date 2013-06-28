@@ -5,12 +5,12 @@ import unittest, copy
 class Test_bitwiseSeq(unittest.TestCase):
 	
 	def setUp(self):
-		self.seq1 = BitwiseSeq('seq1', 30)
-		self.seq2 = BitwiseSeq('seq2', 3000)
-		self.seq3 = BitwiseSeq('seq3', 300000)
+		self.seq1 = BitwiseSeq(30)
+		self.seq2 = BitwiseSeq(3000)
+		self.seq3 = BitwiseSeq(300000)
 
 	def test__init__(self):
-		seq = BitwiseSeq('myseq', 10)
+		seq = BitwiseSeq(10)
 		self.assertEqual(seq.bitmax, 1023)
 
 	def test_convertIntToBitint(self):
@@ -26,23 +26,13 @@ class Test_bitwiseSeq(unittest.TestCase):
 		result = convertIntToBitint(21000)
 		answer = pow(2, 20999)
 		self.assertEqual(result, answer)
-	
-	@profile
-	def test_convertBlockToBitint2(self):
-		result = convertBlockToBitint2((2, 5))
-		self.assertEqual(result, 14)
-		result = convertBlockToBitint2((12, 20))
-		self.assertEqual(result, 522240)
-	@profile
-	def test_convertEmptyBlockToBitint2(self):
-		result = convertBlockToBitint2((4, 4))
-	@profile
+
 	def test_convertBlockToBitint(self):
 		result = convertBlockToBitint((2, 5))
 		self.assertEqual(result, 14)
 		result = convertBlockToBitint((12, 20))
 		self.assertEqual(result, 522240)
-	@profile
+		
 	def test_convertEmptyBlockToBitint(self):
 		result = convertBlockToBitint((4, 4))
 		self.assertEqual(result, 0)
