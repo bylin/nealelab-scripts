@@ -17,9 +17,7 @@ class BitwiseSeq(object):
 			return False
 		return True
 
-	def __iadd__(self, block):
-		assert self.verifyBlockRange(block) is True
-		blockBitint = convertBlockToBitint(block)
+	def __iadd__(self, blockBitint):
 		self.bitint = self.bitint|blockBitint
 		return self
 
@@ -37,15 +35,24 @@ class BitwiseSeq(object):
 		diffBitint = (~selfBitint) & blockBitint
 		return countFlippedBits(diffBitint)
 
+	def addBlockReturnDifference(self, block):
+		assert self.verifyBlockRange(block) is True
+		blockBitint = convertBlockToBitint(block)
+		oldBitint = self.bitint
+		self += blockBitint
+		diffBitint = oldBitint^self.bitint
+		return countFlippedBits(diffBitint)
+
 	def __str__(self):
 		return '{:d}:{:d}'.format(self.length, self.bitint)
 
-def countFlippedBits(bitint): #counts number of flipped bits in O(n), n = # of flipped bits
-		nflipped = 0
-		while bitint != 0:
-			bitint -= 2**int(math.log(bitint, 2))
-			nflipped += 1
-		return nflipped
+# Kernighan popcount
+def countFlippedBits(bitint):
+	count = 0 
+	while bitint:
+		bitint &= bitint - 1
+		count += 1
+	return count
 
 def convertIntToBitint(number):
 	return (pow(2, number - 1))
