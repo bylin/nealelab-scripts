@@ -187,12 +187,12 @@ class RepeatStats(object):
 		for myClass in self.classes:
 			outputString += '{}\n'.format(self.classes[myClass])
 		
-		outputString = outputString[:-2] + '\n===ORDERS===\n'
+		outputString = outputString + '\n===ORDERS===\n'
 	
 		for order in self.orders:
 			outputString += '{}\n'.format(self.orders[order])
 		
-		outputString = outputString[:-2] + '\n===SUPERFAMILIES===\n'
+		outputString = outputString + '\n===SUPERFAMILIES===\n'
 		
 		for mySuper in self.supers:
 			outputString += '{}\n'.format(self.supers[mySuper])
