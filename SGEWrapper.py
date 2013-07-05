@@ -9,7 +9,6 @@ timestamp = 'run-'+datetime.datetime.today().strftime("%a-%b-%d-%Y-%H%M%S")
 def main():
 	args = parseArgs()
 	setUpEnv(args)
-	generateQsubScript(args)
 	cmd = 'qsub '+getScriptName(args)
 	subprocess.call(cmd, shell=True)
 
@@ -38,10 +37,19 @@ def parseArgs():
 def setUpEnv(args):
 	if os.path.exists(timestamp): shutil.rmtree(timestamp)
 	os.mkdir(timestamp)
+	os.chdir(timestamp)
+	copyExtraFiles(args)
+	generateQsubScript(args)
+
+def copyExtraFiles(args):
 	if args.extra_files is not None: 
 		for extra_file in args.extra_files:
-			shutil.copy(extra_file, timestamp)
-	os.chdir(timestamp)
+			if extra_file[0] == '/' or extra_file[0] == '~':
+				break
+			else:
+				linkName = '../{}'.format(extra_file)
+				os.symlink(linkName, extra_file)
+
 
 def generateQsubScript(args):
 	if args.use_job_array:
