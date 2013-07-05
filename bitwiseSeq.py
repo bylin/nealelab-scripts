@@ -2,7 +2,7 @@
 # Author: Brian Lin
 # Encodes marks on each individual base pair within a sequence. Meant for comparison and elimination of redundant regions in a sequence.
 
-import math
+import math, sys
 
 class BitwiseSeq(object):
 
@@ -13,8 +13,8 @@ class BitwiseSeq(object):
 
 	def verifyBlockRange(self, block):
 		(startPosition, endPosition) = block
-		if startPosition <= 0 or endPosition > self.length or endPosition < startPosition:
-			return False
+		if startPosition <= 0 or endPosition > (self.length + 1) or endPosition < startPosition:
+			raise ValueError
 		return True
 
 	def __iadd__(self, blockBitint):
@@ -38,10 +38,11 @@ class BitwiseSeq(object):
 	def addBlockReturnDifference(self, block):
 		assert self.verifyBlockRange(block) is True
 		blockBitint = convertBlockToBitint(block)
-		oldBitint = self.bitint
+		oldSelfBitint = self.bitint
 		self += blockBitint
-		diffBitint = oldBitint^self.bitint
-		return countFlippedBits(diffBitint)
+		diffBitint = oldSelfBitint^self.bitint
+		start = block[0]
+		return countFlippedBits(diffBitint >> (start - 1))
 
 	def __str__(self):
 		return '{:d}:{:d}'.format(self.length, self.bitint)
