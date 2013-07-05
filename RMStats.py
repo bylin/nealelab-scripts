@@ -4,51 +4,81 @@
 # Need to sort .out file by S-W score before running!
 import sys, re, glob, classes, argparse, subprocess, pickle, bitwiseSeq
 from pickler import getFromPickleJar
+from Bio import SeqIO
 
 pickledRepbaseFile = 'repBaseDict.pkl'
-pickledRawSequenceFile = 'bitwiseRawSeqs.pkl'
+
+def parseArgs():
+	argParser = argparse.ArgumentParser(description='Get repeat element stats from RepeatMasker GFF output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.')
+	group = argParser.add_mutually_exclusive_group(required=True)
+	group.add_argument('-f', '--input_file', help='Input file')
+	group.add_argument('-d', '--directory', help='Input directory')
+	argParser.add_argument('-o', '--output_file', help='Output file')
+	argParser.add_argument('-raw', '--raw_sequence_file', required=True, help='Raw sequence .fasta file')
+	argParser.add_argument('-lib', '--library', help='Reference library used (need this flag if looking for full-length hits only)')
+	argParser.add_argument('-full', '--full_length', action='store_true', help='Only calculate stats for full length hits')
+	args = argParser.parse_args()
+	if args.output_file:
+		sys.stdout = open(args.output_file, 'w')
+	return args
+
+args = parseArgs()
 
 def main():
 	fileList = getFileList()
 	stats = classes.RepeatStats()
+	sys.stdout.write('Raw seqs loaded, args parsed, ready to go\n')
 	for i, currentFile in zip(range(1, len(fileList)+1), fileList):
-		print 'Parsing ' + currentFile + '...'
+		sys.stdout.write('Parsing {}'.format(currentFile))
 		addStatsFromFile(stats, currentFile)
-		print currentFile + ' finished, ' + str(len(fileList) - i) + ' files remaining'
-	print stats
+		sys.stdout.write('{} finished, {} files remaining\n'.format(currentFile, str(len(fileList) - i)))
+	sys.stdout.write(str(stats))
 
 def getFileList():
-	args = parseArgs()
-	if args.file:
-		return [args.file]
+	if args.input_file:
+		return [args.input_file]
 	elif args.directory:
 		fileList = glob.glob(args.directory + '/*')
 		return fileList
 	else: exit("Could not get file list")
 	
-def parseArgs():
-	argParser = argparse.ArgumentParser(description='Get repeat element stats from RepeatMasker GFF output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.')
-	group = argParser.add_mutually_exclusive_group(required=True)
-	group.add_argument('-f', '--file', help='Input file')
-	group.add_argument('-d', '--directory', help='Input directory')
-	return argParser.parse_args()
-	
 
 def addStatsFromFile(stats, fileHandle):
-	gffFile = open(fileHandle)
+	infile = open(fileHandle)
 	# need to skip first 3 lines of GFF files
-	for x in range(0,3): gffFile.readline()
-	for line in gffFile:
-		stats += parseLineIntoRepeatTuple(line)
+	for x in range(0,3): infile.readline()
+	sortedFile = sorted(infile, reverse=True)
+	i = 0
+	for line in sortedFile:
+		i += 1
+		if i % 100 == 0:
+			sys.stdout.write('.')
+			sys.stdout.flush()
+		try:
+			repeatTuple = parseLineIntoRepeatTuple(line)
+			if repeatTuple[1] == 0:
+				continue
+			stats += repeatTuple
+		except Exception as e:
+			print e
+			print ("Unable to parse line: {}".format(line))
 
 def parseLineIntoRepeatTuple(line):
-	tabs = re.findall('\W+', line)
-	repeatName = tabs[9]
-	rawSeqName = tabs[4]
-	block = (int(tabs[5]), int(tabs[6]))
-	tracker = RawSeqTracker()
-	difference = tracker.addBlockReturnDifference(rawSeqName, block)
-	blockSize = block[1] - block[0] - difference
+	tracker = SeqTracker()
+	try:
+		tabs = re.findall('\S+', line)
+		repeatName = tabs[9]
+		rawSeqName = tabs[4]
+		block = (int(tabs[5]), int(tabs[6]) + 1)
+		if args.full_length:
+			familyLength = tracker.libSeqs[repeatName]
+			percIdentity = 100 - float(tabs[1])
+	except:
+		raise
+	blockSize = tracker.addBlockReturnDifference(rawSeqName, block)
+	if args.full_length:
+		if blockSize/float(familyLength) < 0.8 or percIdentity < 80:
+			blockSize = 0
 	repeat = buildRepeatFromName(repeatName)
 	return (repeat, blockSize)
 
@@ -79,12 +109,25 @@ class RepbaseMatcher(object):
 	def match(self, repeatName):
 		return self.repbase[repeatName]
 
-class RawSeqTracker(object):
-	rawSeqs = getFromPickleJar(pickledRawSequenceFile) # dict containing bitwise seqs
-	
+def storeRawSeqs(rawSeqFile):
+	seqs = {}
+	for seq in SeqIO.parse(rawSeqFile, 'fasta'):
+		seqs[seq.description] = bitwiseSeq.BitwiseSeq(len(seq))
+	return seqs
+
+def storeLibSeqs(libSeqFile):
+	seqs = {}
+	for seq in SeqIO.parse(libSeqFile, 'fasta'):
+		seqs[seq.id] = len(seq)
+	return seqs
+
+class SeqTracker(object):
+	rawSeqs = storeRawSeqs(args.raw_sequence_file)
+	if args.full_length:
+		libSeqs = storeLibSeqs(args.library)
 	def addBlockReturnDifference(self, name, block):
-		rawSeqs[name] += block
-		return rawSeqs[name].findBlockDifference(block)
+		diff = self.rawSeqs[name].addBlockReturnDifference(block)
+		return diff
 
 if __name__ == '__main__':
 	main()
