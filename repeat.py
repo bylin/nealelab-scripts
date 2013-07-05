@@ -68,6 +68,8 @@ class WickerRepeat(Repeat):
 		elif myClass == 'D': return 'II'
 		elif myClass == 'X': return 'Confused'
 		elif code in ['PotentialHostGene', 'NoCat', 'SSR', 'rDNA']: return code
+		else:
+			exit("Unhandled case: " + code)
 	
 	def determineOrder(self, code):
 		order = code[1]
@@ -92,8 +94,11 @@ class WickerRepeat(Repeat):
 		
 	def determineSuper(self, code):
 		super = code[2]
-		if super == 'G': return 'Gypsy'
-		elif super == 'C': return 'Copia'
+		if self.CLASS == 'I' and self.ORDER == 'LTR':
+			if super == 'G': return 'Gypsy'
+			elif super == 'C': return 'Copia'
+		else:
+			return 'Unknown'
 
 	def determineFamily(self, name):
 		if re.search('_[A-Z]', name):
@@ -111,14 +116,17 @@ class PierRepeat(Repeat):
 		self.FAMILY = self.NAME
 
 	def determineSuper(self, annotation):
-		if re.search('ouachita|bastrop|ozark|appalachian|angelina|talladega', annotation, re.I):
+		if re.search('ouachita|bastrop|ozark|appalachian|angelina|talladega|ifg7|pprt1|gymny|corky', annotation, re.I):
 			return 'Gypsy'
-		if re.search('cumberland|pineywoods|conagree', annotation, re.I):
+		if re.search('cumberland|pineywoods|conagree|tpe1', annotation, re.I):
 			return 'Copia'
 		return 'Unknown'
 
 	def determineFamily(self, name): #truncate subfamily
-		return '_'.join(name.split('_')[:-1])
+		if len(name.split('_')) > 1:
+			return '_'.join(name.split('_')[:-1])
+		else:
+			return name
 
 class RepeatGroupStats(object):
 
@@ -197,9 +205,9 @@ class RepeatStats(object):
 		for mySuper in self.supers:
 			outputString += '{}\n'.format(self.supers[mySuper])
 		
-#		outputString = outputString[:-2] + '\n===FAMILIES===\n'
+		outputString = outputString + '\n===FAMILIES===\n'
 		
-#		for family in self.families:
-#			outputString += '{}\n'.format(self.families[family])
-		outputString += '\n===TOTAL===\n\t{}\t{}\n'.format(self.nSeqs, self.totalLength)
+		for family in self.families:
+			outputString += '{}\n'.format(self.families[family])
+		outputString += '\n===TOTAL===\nTotal\t{}\t{}\n'.format(self.nSeqs, self.totalLength)
 		return outputString
