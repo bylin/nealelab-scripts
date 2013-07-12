@@ -3,7 +3,7 @@
 # Get repeat element stats from redundant RepeatMasker .out output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.
 # Need to sort .out file by S-W score before running!
 import sys, re, glob, classes, argparse, subprocess, pickle, bitwiseSeq
-from pickler import getFromPickleJar
+from pickler import *
 from Bio import SeqIO
 
 pickledRepbaseFile = 'repBaseDict.pkl'
@@ -17,6 +17,7 @@ def parseArgs():
 	argParser.add_argument('-raw', '--raw_sequence_file', required=True, help='Raw sequence .fasta file')
 	argParser.add_argument('-lib', '--library', help='Reference library used (need this flag if looking for full-length hits only)')
 	argParser.add_argument('-full', '--full_length', action='store_true', help='Only calculate stats for full length hits')
+	argParser.add_argument('-pickle', '--pickle_file', help='Write stats object to pickle')
 	args = argParser.parse_args()
 	if args.output_file:
 		sys.stdout = open(args.output_file, 'w')
@@ -32,6 +33,8 @@ def main():
 		sys.stdout.write('Parsing {}'.format(currentFile))
 		addStatsFromFile(stats, currentFile)
 		sys.stdout.write('{} finished, {} files remaining\n'.format(currentFile, str(len(fileList) - i)))
+	if args.pickle_file:
+		sendToPickleJar(stats, args.pickle_file)
 	sys.stdout.write(str(stats))
 
 def getFileList():
@@ -77,7 +80,7 @@ def parseLineIntoRepeatTuple(line):
 		raise
 	blockSize = tracker.addBlockReturnDifference(rawSeqName, block)
 	if args.full_length:
-		if blockSize/float(familyLength) < 0.8 or percIdentity < 80:
+		if blockSize/float(familyLength) < 0.7 or percIdentity < 80:
 			blockSize = 0
 	repeat = buildRepeatFromName(repeatName)
 	return (repeat, blockSize)
@@ -112,7 +115,8 @@ class RepbaseMatcher(object):
 def storeRawSeqs(rawSeqFile):
 	seqs = {}
 	for seq in SeqIO.parse(rawSeqFile, 'fasta'):
-		seqs[seq.description] = bitwiseSeq.BitwiseSeq(len(seq))
+		seqName = re.findall('\S+', seq.description)[0]
+		seqs[seqName] = bitwiseSeq.BitwiseSeq(len(seq))
 	return seqs
 
 def storeLibSeqs(libSeqFile):

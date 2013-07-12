@@ -149,6 +149,9 @@ class RepeatGroupStats(object):
 	def __eq__(self, other):
 		return self.classification == other.classification
 	
+	def __gt__(self, other):
+		return self.length > other.length
+	
 	def __str__(self):
 		return '{}\t{:d}\t{:d}'.format(self.classification, self.nElements, self.length)
 
@@ -190,24 +193,11 @@ class RepeatStats(object):
 		return self
 	
 	def __str__(self):
-		outputString = 'Group\tnElements\tLength\n===CLASSES===\n'
-		
-		for myClass in self.classes:
-			outputString += '{}\n'.format(self.classes[myClass])
-		
-		outputString = outputString + '\n===ORDERS===\n'
-	
-		for order in self.orders:
-			outputString += '{}\n'.format(self.orders[order])
-		
-		outputString = outputString + '\n===SUPERFAMILIES===\n'
-		
-		for mySuper in self.supers:
-			outputString += '{}\n'.format(self.supers[mySuper])
-		
-		outputString = outputString + '\n===FAMILIES===\n'
-		
-		for family in self.families:
-			outputString += '{}\n'.format(self.families[family])
-		outputString += '\n===TOTAL===\nTotal\t{}\t{}\n'.format(self.nSeqs, self.totalLength)
+		outputString = 'Group\tNo. hits\tLength\n'
+		outputString += 'TOTAL\t{}\t{}\n'.format(self.nSeqs, self.totalLength)
+		for classif, statDict in zip(['classes', 'orders', 'supers', 'families'], [self.classes, self.orders, self.supers, self.families]):
+			outputString += '==={}===\n'.format(classif)
+			classifsSortedByLength = sorted(statDict, key=lambda key:statDict[key], reverse=True)
+			for group in classifsSortedByLength:
+				outputString += '{}\n'.format(statDict[group])
 		return outputString

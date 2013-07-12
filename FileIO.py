@@ -7,18 +7,26 @@ from subprocess import PIPE,Popen
 from pickler import sendToPickleJar,getFromPickleJar
 import re,pickler,sys
 
-# ExtendedSeqIO.py
-# Author: Brian Lin
+# FileIO.py
+# Author: Brian Lin, Jake Zieve
 # Description: Extended versions of a file object. Supports simpler, abstracted sequence handling, matching, and extraction using Bio::SeqIO
 class ExtendedFile(file):
+	
+	def __init__(self, filename):
+		file.__init__(self, filename)
+		self.filename = filename
 	
 	def resetFilePointer(self):
 		self.seek(0)
 
-class ExtendedFastaFile(ExtendedFile):
+class Fasta(ExtendedFile):
 
 	def seqRecordList(self):
 		return SeqIO.parse(self, 'fasta')
+	
+	@staticmethod
+	def writeToFile(seq, filename):
+		SeqIO.write(seq, filename, 'fasta')
 
 	def printSeqsStats(self):
 		self.printNumSeqs()
@@ -145,15 +153,23 @@ class ExtendedFastaFile(ExtendedFile):
 	
 	def createMultiFastaFromRecords(self, seqs):
 		for seq in seqs: self.createFastaFromRecord(seq)
+	
+	def removeRedundantSeqs(self):
+		outfile = '{}.nonredundant'.format(self.filename)
+		seqList = []
+		for seq in self.seqRecordList():
+			if seq not in seqList:
+				seqList.append(seq)
+				self.writeToFile(seq, outfile)
 
-class ExtendedBlastTabFile(ExtendedFile):
+class BlastOutTab(ExtendedFile):
 
 	def findResultsUsingQuery(query):
 		return
 	def findResultsUsingSubject(subject):
 		return
 
-class ExtendedEMBLFile(ExtendedFile):
+class EMBL(ExtendedFile):
 	
 	def parse(self):
 		emblDict = {}
@@ -233,8 +249,8 @@ def main():
 	#pickler.sendToPickleJar(repBase,'repBaseDict.pkl')
 	#repBase = pickler.getFromPickleJar('repBaseDict.pkl')
 	#print len(repBase) 
-	fasta = ExtendedFastaFile(sys.argv[1])
-	fasta.printSeqsStats()
+	#fasta = ExtendedFastaFile(sys.argv[1])
+	#fasta.printSeqsStats()
 
 if __name__=="__main__":
 	main()
