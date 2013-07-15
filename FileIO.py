@@ -26,7 +26,8 @@ class Fasta(ExtendedFile):
 	
 	@staticmethod
 	def writeToFile(seq, filename):
-		SeqIO.write(seq, filename, 'fasta')
+		handle = open(filename, 'a')
+		SeqIO.write(seq, handle, 'fasta')
 
 	def printSeqsStats(self):
 		self.printNumSeqs()
@@ -158,8 +159,8 @@ class Fasta(ExtendedFile):
 		outfile = '{}.nonredundant'.format(self.filename)
 		seqList = []
 		for seq in self.seqRecordList():
-			if seq not in seqList:
-				seqList.append(seq)
+			if seq.description not in seqList:
+				seqList.append(seq.description)
 				self.writeToFile(seq, outfile)
 
 class BlastOutTab(ExtendedFile):
@@ -251,6 +252,7 @@ def main():
 	#print len(repBase) 
 	#fasta = ExtendedFastaFile(sys.argv[1])
 	#fasta.printSeqsStats()
+	return
 
 if __name__=="__main__":
 	main()
