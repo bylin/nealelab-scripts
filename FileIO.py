@@ -26,12 +26,8 @@ class Fasta(ExtendedFile):
 	
 	@staticmethod
 	def writeToFile(seq, filename):
-<<<<<<< .merge_file_ZULxLs
 		handle = open(filename, 'a')
 		SeqIO.write(seq, handle, 'fasta')
-=======
-		SeqIO.write(seq, filename, 'fasta')
->>>>>>> .merge_file_6UHb8o
 
 	def printSeqsStats(self):
 		self.printNumSeqs()
