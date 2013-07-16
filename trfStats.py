@@ -6,6 +6,12 @@ from classes import trfHit
 from collections import defaultdict
 from operator import itemgetter, attrgetter
 
+
+def cache(pickle_file):
+        print('\nLoading pickled genome into memory (should take less than a minute)... ', end='', file=sys.stderr); sys.stderr.flush()
+        trfStats = pickle.load(open(pickle_file, 'rb'))
+        print('Done!  Loaded ' + format(len(trfStats),',') + ' trf hits (tandem repeats) from ' + pickle_file
+        return trfStats 
 	
 def main():
 	args = parseArgs()
