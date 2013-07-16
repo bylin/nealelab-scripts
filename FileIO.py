@@ -159,13 +159,10 @@ class Fasta(ExtendedFile):
 		outfile = '{}.nonredundant'.format(self.filename)
 		seqList = []
 		for seq in self.seqRecordList():
-<<<<<<< .merge_file_ZULxLs
 			if seq.description not in seqList:
 				seqList.append(seq.description)
-=======
 			if seq not in seqList:
 				seqList.append(seq)
->>>>>>> .merge_file_6UHb8o
 				self.writeToFile(seq, outfile)
 
 class BlastOutTab(ExtendedFile):
