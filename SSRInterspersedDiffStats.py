@@ -1,4 +1,5 @@
 import FileIO, bitwiseSeq, argparse, RMStats, re
+from Bio import SeqIO
 
 def parseArgs():
 	argParser = argparse.ArgumentParser(description="Gets total bp coverage of SSRs that aren't already annotated by interspersed repeats")
