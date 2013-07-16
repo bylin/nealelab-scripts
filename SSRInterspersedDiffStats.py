@@ -1,4 +1,8 @@
-import FileIO, bitwiseSeq, argparse, RMStats, re
+#!/usr/bin/python
+# Author: Brian Lin
+# Loblolly pine genome annotation project: Find total BP coverage of tandems in a sequence set, given interspersed repeats and tandem repeats, with priority going to interspersed repeats. For figure ?.
+
+import FileIO, bitwiseSeq, argparse, re
 
 def parseArgs():
 	argParser = argparse.ArgumentParser(description="Gets total bp coverage of SSRs that aren't already annotated by interspersed repeats")
