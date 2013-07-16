@@ -14,7 +14,7 @@ import re
 class trfHit:
 	def __init__(self, Data=[]):
 		self.seq_name = Data[0]
-		self.start = int(Data[1]) #Intrices of the repeat relative to the start of the sequence 
+		self.start = int(Data[1]) #Indices of the repeat relative to the start of the sequence 
 		self.end = int(Data[2])
 		self.period = int(Data[3])#Period size of the repeat
 		self.copy_num = float(Data[4])#Number of copies aligned with the consensus pattern
@@ -27,7 +27,8 @@ class trfHit:
 		self.g = float(Data[11])
 		self.t = float(Data[12])
 		self.entropy = float(Data[13])#Entropy measure based on percent composition
-		self.sequence = Data[14]#The repeat motif itself
+		self.motif = Data[14]#The repeat motif itself
+		self.sequence = Data[15]#The entire sequence
 		self.length = self.end - self.start#Alignment length
 					
 	def __str__(self): 

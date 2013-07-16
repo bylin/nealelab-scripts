@@ -7,11 +7,29 @@ from collections import defaultdict
 from operator import itemgetter, attrgetter
 
 
-def cache(pickle_file):
-        print('\nLoading pickled genome into memory (should take less than a minute)... ', end='', file=sys.stderr); sys.stderr.flush()
-        trfStats = pickle.load(open(pickle_file, 'rb'))
-        print('Done!  Loaded ' + format(len(trfStats),',') + ' trf hits (tandem repeats) from ' + pickle_file
-        return trfStats 
+''' import sys
+ import trfStats 
+ 
+ trfDict = None
+ 
+ if __name__ == "__main__":
+     while True:
+         if not target_seq:
+             target_seq, pita_cds_hits, species = mainscript.cache()
+         mainscript.part2(target_seq, pita_cds_hits, species)
+         print "Press enter to re-run the script, CTRL-C to exit"
+         sys.stdin.readline()
+         reload(mainscript)
+
+def cache():
+	args = parseArgs()
+	if args.load_from_pickle:
+	        print('\nLoading pickled genome into memory (should take less than a minute)... ', end='', file=sys.stderr); sys.stderr.flush()
+        	trfStats = pickle.load(open(args.load_from_pickle[0], 'rb'))
+        	print('Done!  Loaded ' + format(len(trfStats),',') + ' trf hits (tandem repeats) from ' + pickle_file
+        	return trfStats 
+	else:
+		return '''
 	
 def main():
 	args = parseArgs()
@@ -83,7 +101,7 @@ def parseNGS(args):
 	for line in open(args.trf_output).read().split('\n'):	
 		if line.startswith('@'):
 			seq_name = line[1:]
-		else:# line != '':
+		elif line != '':
 			fields = line.split()
 			fields.insert(0,seq_name)
 			newTandem = trfHit(fields)
@@ -91,6 +109,8 @@ def parseNGS(args):
 				trfDict = selectMultimer(newTandem,trfDict)
 			else:
 				trfDict[seq_name].append(newTandem)
+		else:
+			continue
 	return trfDict
 
 def overlap(t1,t2):
