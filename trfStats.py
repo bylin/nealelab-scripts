@@ -6,36 +6,10 @@ from classes import trfHit
 from collections import defaultdict
 from operator import itemgetter, attrgetter
 
-
-''' import sys
- import trfStats 
- 
- trfDict = None
- 
- if __name__ == "__main__":
-     while True:
-         if not target_seq:
-             target_seq, pita_cds_hits, species = mainscript.cache()
-         mainscript.part2(target_seq, pita_cds_hits, species)
-         print "Press enter to re-run the script, CTRL-C to exit"
-         sys.stdin.readline()
-         reload(mainscript)
-
-def cache():
-	args = parseArgs()
-	if args.load_from_pickle:
-	        print('\nLoading pickled genome into memory (should take less than a minute)... ', end='', file=sys.stderr); sys.stderr.flush()
-        	trfStats = pickle.load(open(args.load_from_pickle[0], 'rb'))
-        	print('Done!  Loaded ' + format(len(trfStats),',') + ' trf hits (tandem repeats) from ' + pickle_file
-        	return trfStats 
-	else:
-		return '''
-	
 def main():
 	args = parseArgs()
 	outFileBase = args.trf_output
 	trfDict = getTRFDict(args)
-#	trfDict = filterTRFDict(args,trfDict)
 	pickleTRF(args,trfDict)
 	getStats(args,trfDict,outFileBase)
 		
@@ -46,7 +20,7 @@ def parseArgs():
 	Example usage (if pathed):
 		trfStats.py trf_output.dat -f -m
 	Sample line from TRF .dat file:
-	start end period_size num_copies consensus_size %matches %indels score %a %c %g %t entropy period sequence 
+	start end period_length copy_num consensus_length %matches %indels score %a %c %g %t entropy period sequence 
 	33493 33544 22 2.3 22 83 3 59 34 3 1 59 1.27 ATTTTTAAAACATTTTTAATTC ATTTTAAAAATATTTTTAATTTATTTTTAAAACATTTTTTATTGCATTTTTA
 	'''
 
@@ -78,7 +52,7 @@ def getTRFDict(args):
 def getStats(args,trfDict,outFileBase):
 	trfList = flattenTRFDict(trfDict)
 	if args.tab_delim:
-		writeTRFDict(trf,outFileBase)
+		writeTRFDict(trfList,outFileBase)
 	if args.period_frequencies:
 		 writePeriodFreqs(trfList,outFileBase)
 	if args.period_cumulative_length:
@@ -105,6 +79,7 @@ def parseNGS(args):
 			fields = line.split()
 			fields.insert(0,seq_name)
 			newTandem = trfHit(fields)
+			print newTandem._dict_.keys()
 			if args.filter:
 				trfDict = selectMultimer(newTandem,trfDict)
 			else:
@@ -168,10 +143,10 @@ def flattenTRFDict(trfDict):
 #
 def writeTRFDict(trfList,outFileBase):
 	out = open(outFileBase+'.txt','w')
-	header = out.write("seq_name\tstart\tstop\tperiod\tcopies\tsize_consensus\t%matches\t%indels\tscore\t%a\t%c\t%g\t%t\tentropy\tentropy\ttotal_len\tmotif\n")
+	header = "seq_name\tstart\tend\tperiod\tcopies\tconsensus\t%matches\t%indels\tscore\t%a\t%c\t%g\t%t\tentropy\tlength\tmotif\n"
 	out.write(header)
 	for t in trfList:
-		out.write(t);
+		out.write(str(t));
 
 def getPeriodFreqs(trfList):
 	periodDict = defaultdict(int)
