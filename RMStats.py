@@ -6,7 +6,7 @@ import sys, re, glob, classes, argparse, subprocess, pickle, bitwiseSeq
 from pickler import *
 from Bio import SeqIO
 
-pickledRepbaseFile = 'repBaseDict.pkl'
+pickledRepbaseFile = 'repbase-17.07.pkl'
 
 def parseArgs():
 	argParser = argparse.ArgumentParser(description='Get repeat element stats from RepeatMasker GFF output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.')
