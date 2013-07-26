@@ -161,6 +161,8 @@ class Fasta(ExtendedFile):
 		for seq in self.seqRecordList():
 			if seq.description not in seqList:
 				seqList.append(seq.description)
+			if seq not in seqList:
+				seqList.append(seq)
 				self.writeToFile(seq, outfile)
 
 class BlastOutTab(ExtendedFile):

@@ -19,6 +19,29 @@ class Repeat(object):
 		self.SUPER = self.determineSuper(code)
 		self.FAMILY = self.determineFamily(name)
 	
+	def SOClassif(self):
+		if self.ORDER is not None:
+			if self.ORDER == 'LTR':
+				return 'LTR_retrotransposon'
+			elif self.ORDER == 'LINE':
+				return 'LINE_element'
+			elif self.ORDER == 'SINE':
+				return 'SINE_element'
+			elif self.ORDER == 'TIR':
+				return "terminal_inverted_repeat_element"
+			elif self.ORDER == 'Helitron':
+				return 'helitron'
+		if self.CLASS is not None:
+			if self.CLASS == 'I':
+				return 'retrotransposon'
+			if self.CLASS == 'II':
+				return "DNA_transposon"
+			if self.CLASS == 'SSR':
+				return 'satellite_DNA'
+			if self.CLASS == 'PotentialHostGene':
+				return 'pseudogene'
+		return 'transposable_element'	
+
 	def __str__(self):#for debug
 		return '{:s}: {:s}, {:s}, {:s}, {:s}\n'.format(self.NAME, self.CLASS, self.ORDER, self.SUPER, self.FAMILY)
 
@@ -27,6 +50,7 @@ class Repeat(object):
 
 	def __hash__(self): #used in set() function later
 		return hash(self.name)
+	
 
 class repBaseRepeat: #DEPRECATED
 

@@ -1,4 +1,7 @@
-import FileIO, bitwiseSeq, argparse, RMStats, re
+#!/usr/bin/python
+# Author: Brian Lin
+# Loblolly pine genome annotation project: Find total BP coverage of tandems in a sequence set, given interspersed repeats and tandem repeats, with priority going to interspersed repeats. For figure ?.
+import FileIO, bitwiseSeq, argparse, re
 from Bio import SeqIO
 
 def parseArgs():
@@ -22,27 +25,40 @@ def addInterspersedToRawSeqs():
 	total = 0
 	for line in sortedFile:
 		try:
-			total += parseLineIntoBlockSize(line)
+			total += parseRMLineIntoBlockSize(line)
 		except Exception as e:
 			print e
 			print ("Unable to parse line: {}".format(line))
+	return total
 
 def addTandemsToRawSeqs():
 	infile = FileIO.Fasta(args.trf_fasta_file)
 	total = 0
 	for seq in infile.seqRecordList():
 		try:
-			total += parseLineIntoBlockSize(line)
+			total += parseTRFLineIntoBlockSize(seq.description)
 		except Exception as e:
 			print e
-			print ("Unable to parse line: {}".format(line))
+			print ("Unable to parse seq: {}".format(seq.description))
+	return total
 
-def parseLineIntoBlockSize(line):
+def parseRMLineIntoBlockSize(line):
 	tracker = SeqTracker()
 	try:
 		tabs = re.findall('\S+', line)
 		rawSeqName = tabs[4]
 		block = (int(tabs[5]), int(tabs[6]) + 1)
+	except:
+		raise
+	blockSize = tracker.addBlockReturnDifference(rawSeqName, block)
+	return blockSize
+
+def parseTRFLineIntoBlockSize(line):
+	tracker = SeqTracker()
+	try:
+		tabs = line.split('|')
+		rawSeqName = tabs[0]
+		block = (int(tabs[2].split(':')[0]), int(tabs[2].split(':')[1]))
 	except:
 		raise
 	blockSize = tracker.addBlockReturnDifference(rawSeqName, block)
@@ -57,8 +73,9 @@ def storeRawSeqs(rawSeqFile):
 
 class SeqTracker(object):
 	rawSeqs = storeRawSeqs(args.raw_sequence_file)
-	if args.full_length:
-		libSeqs = storeLibSeqs(args.library)
 	def addBlockReturnDifference(self, name, block):
 		diff = self.rawSeqs[name].addBlockReturnDifference(block)
 		return diff
+
+if __name__ == '__main__':
+	main()
