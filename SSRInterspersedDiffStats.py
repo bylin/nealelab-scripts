@@ -34,7 +34,7 @@ def addInterspersedToRawSeqs():
 def addTandemsToRawSeqs():
 	infile = FileIO.Fasta(args.trf_fasta_file)
 	total = 0
-	for seq in infile.seqRecordList():
+	for seq in infile:
 		try:
 			total += parseTRFLineIntoBlockSize(seq.description)
 		except Exception as e:
