@@ -100,6 +100,8 @@ def classify_GAG(hitList, classifs, currentScore):
 			classify_RT(hitList[i+1:], classifs, hit.score + currentScore)
 		elif hit.name[0:6] == 'POL-RH':
 			classify_RH(hitList[i+1:], classifs, hit.score + currentScore)
+		elif hit.name[0:7] == 'POL-RTRH':
+			classify_RTRH(hitList[i+1:], classifs, hit.score + currentScore)
 		elif hit.name[0:6] == 'POL-IN':
 			classify_INT(hitList[i+1:], classifs, hit.score + currentScore)
 
@@ -146,3 +148,10 @@ if __name__ == '__main__':
 	orfFile = args.fasta + '.orfs'
 	hitFile = 'hmmer-output-{}.txt'.format(timestamp)
 	main()
+	ear
+
+
+
+
+
+	
