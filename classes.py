@@ -14,7 +14,7 @@ import re
 class trfHit:
 	def __init__(self, Data=[]):
 		self.seq_name = Data[0]
-		self.start = int(Data[1]) #Indices of the repeat relative to the start of the sequence 
+		self.start = int(Data[1]) #Intrices of the repeat relative to the start of the sequence 
 		self.end = int(Data[2])
 		self.period = int(Data[3])#Period size of the repeat
 		self.copy_num = float(Data[4])#Number of copies aligned with the consensus pattern
@@ -27,8 +27,7 @@ class trfHit:
 		self.g = float(Data[11])
 		self.t = float(Data[12])
 		self.entropy = float(Data[13])#Entropy measure based on percent composition
-		self.motif = Data[14]#The repeat motif itself
-		self.sequence = Data[15]#The entire sequence
+		self.sequence = Data[14]#The repeat motif itself
 		self.length = self.end - self.start#Alignment length
 					
 	def __str__(self): 
@@ -43,7 +42,7 @@ class trfHit:
 	def __hash__(self):
 		return hash(self.sequence)
 
-class blastHit:
+class BlastHit(object):
 	def __init__(self, data = []):
 		self.qid = data[0]#query id
 		self.sid = data[1]#subject/database id
@@ -63,3 +62,18 @@ class blastHit:
 		 self.sid, self.pid, self.alen, self.m, self.g, self.qstart,\
 		 self.qend, self.sstart, self.send, self.ev, self.bs)
 
+class HmmHit(object):
+	def __init__(self, name, start, end, score):
+		self.start = start
+		self.end = end
+		self.name = name
+		self.score = score
+	def __cmp__(self, other): # for efficient sorting of hits within a raw sequence
+		if self.start == other.start and self.end == other.end:
+			return 0
+		elif self.start > other.start:
+			return 1
+		else: return -1
+	def __str__(self):
+		return '{}[{}:{}]'.format(self.name, self.start, self.end)
+	
