@@ -9,15 +9,12 @@ from Bio import SeqIO
 pickledRepbaseFile = 'repbase-17.07.pkl'
 
 def parseArgs():
-	argParser = argparse.ArgumentParser(description='Get repeat element stats from RepeatMasker GFF output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.')
-	group = argParser.add_mutually_exclusive_group(required=True)
-	group.add_argument('-f', '--input_file', help='Input file')
-	group.add_argument('-d', '--directory', help='Input directory')
-	argParser.add_argument('-o', '--output_file', help='Output file')
+	argParser = argparse.ArgumentParser(description='Get repeat element stats from RepeatMasker output. Assume annotations include a mixture of Wicker annotations, Repbase annotations, and custom annotations.')
+	argParser.add_argument('input', help='Input .out file')
 	argParser.add_argument('-raw', '--raw_sequence_file', required=True, help='Raw sequence .fasta file')
 	argParser.add_argument('-lib', '--library', help='Reference library used (need this flag if looking for full-length hits only)')
 	argParser.add_argument('-full', '--full_length', action='store_true', help='Only calculate stats for full length hits')
-	argParser.add_argument('-pickle', '--pickle_file', help='Write stats object to pickle')
+	argParser.add_argument('-o', '--output_file', help='Output file')
 	args = argParser.parse_args()
 	if args.output_file:
 		sys.stdout = open(args.output_file, 'w')
@@ -33,13 +30,11 @@ def main():
 		sys.stdout.write('Parsing {}'.format(currentFile))
 		addStatsFromFile(stats, currentFile)
 		sys.stdout.write('{} finished, {} files remaining\n'.format(currentFile, str(len(fileList) - i)))
-	if args.pickle_file:
-		sendToPickleJar(stats, args.pickle_file)
 	sys.stdout.write(str(stats))
 
 def getFileList():
-	if args.input_file:
-		return [args.input_file]
+	if args.input:
+		return [args.input]
 	elif args.directory:
 		fileList = glob.glob(args.directory + '/*')
 		return fileList
