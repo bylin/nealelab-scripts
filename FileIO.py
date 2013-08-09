@@ -249,8 +249,8 @@ def main():
 	#pickler.sendToPickleJar(repBase,'repBaseDict.pkl')
 	#repBase = pickler.getFromPickleJar('repBaseDict.pkl')
 	#print len(repBase) 
-	#fasta = ExtendedFastaFile(sys.argv[1])
-	#fasta.printSeqsStats()
+	fasta = Fasta(sys.argv[1])
+	fasta.printSeqsStats()
 
 if __name__=="__main__":
 	main()
