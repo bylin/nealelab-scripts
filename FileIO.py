@@ -21,9 +21,20 @@ class ExtendedFile(file):
 
 class Fasta(ExtendedFile):
 
-	def seqRecordList(self):
+	def seqs(self):
+		self.resetFilePointer()
 		return SeqIO.parse(self, 'fasta')
 	
+	def __contains__(self, item):
+		self.resetFilePointer()
+		c = item in SeqIO.parse(self, 'fasta')
+		self.resetFilePointer()
+		return c
+	
+	def __iter__(self):
+		self.resetFilePointer()
+		return SeqIO.parse(self, 'fasta')
+
 	@staticmethod
 	def writeToFile(seq, filename):
 		handle = open(filename, 'a')
@@ -43,7 +54,7 @@ class Fasta(ExtendedFile):
 		print 'Number of sequences:\t{:,d}'.format(self.getNumSeqs())
 	
 	def getNumSeqs(self):
-		num = sum(1 for seq in self.seqRecordList())
+		num = sum(1 for seq in self.seqs())
 		self.resetFilePointer()
 		return num
 	
@@ -51,7 +62,7 @@ class Fasta(ExtendedFile):
 		print 'Average sequence length:\t{:,d}'.format(self.getAvgSeqLen())
 	
 	def getSeqLens(self):
-		lenList = [len(seq) for seq in self.seqRecordList()]
+		lenList = [len(seq) for seq in self.seqs()]
 		self.resetFilePointer()
 		return lenList
 
@@ -99,13 +110,13 @@ class Fasta(ExtendedFile):
 		print 'Average GC content:\t{:.2f}%'.format(self.getAvgGCcontent())
 		
 	def getAvgGCcontent(self):
-		gc = sum(GC(seq.seq) for seq in self.seqRecordList())
+		gc = sum(GC(seq.seq) for seq in self.seqs())
 		self.resetFilePointer()
 		return gc/self.getNumSeqs()
 		
 	def getSeqUsingId(self, id):
 		mySeq = None
-		for seq in self.seqRecordList():
+		for seq in self.seqs():
 			if seq.id == id:
 				mySeq = seq
 		self.resetFilePointer()
@@ -114,7 +125,7 @@ class Fasta(ExtendedFile):
 	
 	def getSeqUsingName(self, name):
 		mySeq = None
-		for seq in self.seqRecordList():
+		for seq in self.seqs():
 			if seq.name == name:
 				mySeq = seq
 		self.resetFilePointer()
@@ -123,7 +134,7 @@ class Fasta(ExtendedFile):
 	
 	def getSeqUsingDescription(self, description):
 		mySeq = None
-		for seq in self.seqRecordList():
+		for seq in self.seqs():
 			if seq.description == description:
 				mySeq = seq
 		self.resetFilePointer()
@@ -133,7 +144,7 @@ class Fasta(ExtendedFile):
 	def getSeqsUsingDescriptionList(self, descriptionList):
 		seqList = []
 		numDescriptionsLeft = len(descriptionList)
-		for seq in self.seqRecordList():
+		for seq in self.seqs():
 			if seq.description in descriptionList:
 				seqList.append(seq)
 				numDescriptionsLeft -= 1
@@ -143,7 +154,7 @@ class Fasta(ExtendedFile):
 
 	def getSeqsUsingRegex(self, regex):
 		seqList = []
-		for seq in self.seqRecordList():
+		for seq in self.seqs():
 			if re.search(regex, seq.description, re.IGNORECASE): 
 				seqList.append(seq)
 		self.resetFilePointer()
@@ -158,7 +169,7 @@ class Fasta(ExtendedFile):
 	def removeRedundantSeqs(self):
 		outfile = '{}.nonredundant'.format(self.filename)
 		seqList = []
-		for seq in self.seqRecordList():
+		for seq in self.seqs():
 			if seq.description not in seqList:
 				seqList.append(seq.description)
 			if seq not in seqList:
