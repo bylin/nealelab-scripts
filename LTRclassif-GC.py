@@ -22,8 +22,9 @@ def main():
 	parseHmmHits(rawSeqs)
 	print 'Ranking hits and classifying'
 	examineDomainsAndClassify(rawSeqs)
-	print 'Cleaning temp files'
-	clean()
+	if args.keep_temporary_files:
+		print 'Cleaning temp files'
+		clean()
 
 def runHmmer():
 	hmmernCmd = 'hmmern.py -hmm {} -i {} -o {}'.format(hmmProfilesForLTRs, args.fasta, hmmHitFile)
@@ -157,8 +158,6 @@ def classify_INT_RT(hitList, classifs, currentScore):
 	classifs.append(('Copia', currentScore))
 
 def clean():
-	if args.keep_temporary_files:
-		return
 	os.remove(orfFile)
 	os.remove(hmmHitFile)
 	os.remove(evidenceFile)
