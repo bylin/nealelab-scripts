@@ -1,13 +1,22 @@
 #!/usr/bin/python
 # Author: Brian Lin
 
-import re, argparse
+import sys
+import re
+import argparse
+import errno
 
 argParser = argparse.ArgumentParser()
-argParser.add_argument("input", help="Variable length space file to be turned into a tab delimited file")
+argParser.add_argument("inputFile", help="Variable length space file to be turned into a tab delimited file")
 args = argParser.parse_args()
 
-for line in args.input:
+handle = open(args.inputFile)
+for line in handle:
 	tabs = re.findall('\S+', line)
-	print '\t'.join(tabs)
+	try:
+		print '\t'.join(tabs)
+		sys.stdout.flush()
+	except IOError as e:
+		if e.errno == errno.EPIPE: # error 32, broken pipe
+			exit()
 
