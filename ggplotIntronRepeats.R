@@ -1,15 +1,15 @@
 library("ggplot2")
 library("grid")
+library("scales")
 
 addBarGraph <- function(plot) {
   #default colors, see http://colorbrewer2.org/
   data <- read.table(file="/Users/Student/introns.txt", head=TRUE, sep="\t")
-  datasets <- c("Genome", "All", "First", "First 20-49 Kb", "First 50-99 Kb", "First 100+ Kb", "Mod 20-49 Kb", "Mod 50-99 Kb", "Mod 100+ Kb", "High 20-49 Kb", "High 50-99 Kb", "High 100+ Kb")
+  datasets <- c("Genome", "All", "First", "First 20-49 Kb", "First 50-99 Kb", "First 100+ Kb", "Distal", "Distal 20-49 Kb", "Distal 50-99 Kb", "Distal 100+ Kb")
   data$Dataset <- factor(data$Dataset, levels=datasets, ordered=TRUE)
   plot <- plot + geom_bar(data=data, aes(x=Dataset, y=Percentage, fill=Classification, width=0.62),stat="identity")
-  #classifColors <- c("#FF7F00","#984EA3", "#377EB8", "#4DAF4A",  "#E41A1C", "#FFFF33")
-  classifColors <- c("#E41A1C" ,"#4DAF4A" ,  "#377EB8", "#984EA3" ,"#FFFF33", "#FF7F00")
-  classifs <- c("LTR Gypsy", "LTR Copia","LINE", "Other retrotransposon","DNA transposon","Simple repeats","Uncategorized")
+  classifColors <- c( "#2B8CBE","#FEC44F",  "#045A8D",  "#41AB5D","#74A9CF" ,"#78C679"  , "#D7301F","#FF7F00" )
+  classifs <- c("Gypsy LTR", "Copia LTR", "Other LTR",  "LINE", "Other retrotransposon","DNA transposon","Uncategorized", "Simple repeats")
   plot <- plot + scale_fill_manual(name = "", values=classifColors, breaks=classifs)
   return(plot)
 }
@@ -28,15 +28,18 @@ formatPlot <- function(plot) {
   plot <- plot + theme(axis.title.x = element_text(vjust=0,face="bold"), axis.title.y = element_text(vjust=0,face="bold"),
                        axis.text.y = element_text(colour="black"), axis.text.x = element_text(colour="black", angle=45, hjust=1),
                        plot.margin = unit(c(1,0,1,1), "cm"))
+  plot <- plot + scale_y_continuous(labels=percent, breaks=c(0, 0.15, 0.30, 0.45, 0.60, 0.75))
+  #plot <- plot + guides(fill = guide_legend(nrow = 2)) + theme(legend.position="bottom")
   plot <- plot + xlab("Intron set") + ylab("Percentage of dataset")
 }
 
 main <- function() {
-  theme_set(theme_gray(base_size=20))
+  #theme_set(theme_gray(base_size=20))
   plot <- ggplot()
   plot <- addBarGraph(plot)
   plot <- addGCGraph(plot)
   plot <- formatPlot(plot)
   plot
+  ggsave(plot, file="intronRepeats.tiff", dpi=400)
 }
 main()
