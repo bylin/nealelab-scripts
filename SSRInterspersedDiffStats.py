@@ -15,8 +15,8 @@ args = parseArgs()
 
 def main():
 	interspersed = addInterspersedToRawSeqs()
-	tandems = addTandemsToRawSeqs()
-	print "Intersprsed: {}\nTandems: {}\n".format(interspersed, tandems)
+	tandems, ntandems = addTandemsToRawSeqs()
+	print "Intersprsed: {}\nTandems: {}\nNumber of tandem hits: {}\n".format(interspersed, tandems, ntandems)
 
 def addInterspersedToRawSeqs():
 	infile = open(args.rm_output)
@@ -34,13 +34,17 @@ def addInterspersedToRawSeqs():
 def addTandemsToRawSeqs():
 	infile = FileIO.Fasta(args.trf_fasta_file)
 	total = 0
+	nhits = 0
 	for seq in infile:
 		try:
-			total += parseTRFLineIntoBlockSize(seq.description)
+			bp = parseTRFLineIntoBlockSize(seq.description)
+			if bp == 0: continue
+			total += bp
+			nhits += 1
 		except Exception as e:
 			print e
 			print ("Unable to parse seq: {}".format(seq.description))
-	return total
+	return total, nhits
 
 def parseRMLineIntoBlockSize(line):
 	tracker = SeqTracker()
