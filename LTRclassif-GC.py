@@ -23,8 +23,9 @@ def main():
 	print 'Ranking hits and classifying'
 	examineDomainsAndClassify(rawSeqs)
 	if args.keep_temporary_files:
-		print 'Cleaning temp files'
-		clean()
+		return
+	print 'Cleaning temp files'
+	clean()
 
 def runHmmer():
 	hmmernCmd = 'hmmern.py -hmm {} -i {} -o {}'.format(hmmProfilesForLTRs, args.fasta, hmmHitFile)
@@ -71,13 +72,15 @@ def examineDomainsAndClassify(rawSeqs):
 			old = rawSeqs[xseq].seq.description.split('\t')[1]
 			if classif and old != classif:
 				outputFileHandle.write('{}\t{}\t{}\t{}\n'.format(xseq, old, classif, score))
+			print xseq + '\t' + old + '\t' + classif
 		except:
 			if classif:
 				outputFileHandle.write('{}\t{}\n'.format(xseq, classif))
+			print xseq + '\t' + classif
 
 def classify(hitList, classifs, currentScore):
 	for hit,i in zip(hitList, range(0,len(hitList))):
-		if hit.name[0:6] == 'POL-GA':
+		if hit.name[0:3] == 'GAG':
 			classify_GAG(hitList[i:], classifs, hit.score)
 		if hit.name[0:6] == 'POL-AP':
 			classify_AP(hitList[i:], classifs, hit.score)
@@ -99,7 +102,8 @@ def findBestClassif(classifs):
 		return '', -1
 
 # Classify_: represents states in a state diagram. 
-# This is coded as a sort of DFA, but all paths are taken to maximize the cumlative HMM hit score of a series of linked hits.
+# This is coded deterministically, but all paths are iterated through to maximize the cumlative HMM hit score of a series of linked hits.
+# That way, we consider all possibilities and combinations of protein domain hits.
 def classify_GAG(hitList, classifs, currentScore):
 	for hit, i in zip(hitList[i:], range(1, len(hitList))):
 		if hit.name[0:6] == 'POL-AP':
