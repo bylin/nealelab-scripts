@@ -31,8 +31,9 @@ def parseArgs():
 
 	argParser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=textwrap.dedent(myDescription))
 	argParser.add_argument('trf_output')
-	argParser.add_argument('-t', '--tab_delim', help='Prints trf_output as a tab delimited file', action='store_true')
 	argParser.add_argument('-ngs', '--next_gen_seq', help='Input file was generated with TRF(v4.07+) option -ngs, a .ngs file', action='store_true')
+	argParser.add_argument('-csv', '--csv', help='Prints trf_output as a csv', action='store_true')
+	argParser.add_argument('-sql', '--sql', help='Prints trf_output as a MySQL dump for further querying', action='store_true')
 	###Deprecated###
 	#argParser.add_argument('-pis', '--send_to_pickle', nargs =1, help='Send the main dictionary to a pickle file')
 	#argParser.add_argument('-pil', '--load_from_pickle', nargs=1, help='Load the main dictionary to a pickle file')
@@ -59,8 +60,10 @@ def getTRFDict(args):
 
 def getStats(args,trfDict,outFileBase):
 	trfList = flattenTRFDict(trfDict)
-	if args.tab_delim:
-		writeTRFDict(trfList,outFileBase)
+	if args.csv:
+		writeCSV(trfList,outFileBase)
+	if args.sql:
+		writeSQL(trfList,outFileBase)
 	if args.period_frequencies:
 		 writePeriodFreqs(trfList,outFileBase)
 	if args.period_length:
@@ -76,7 +79,8 @@ def getStats(args,trfDict,outFileBase):
 	if args.telomeres:
 		writeTelomeres(trfList,outFileBase)
 	if args.stats:
-		writeTRFDict(trfList,outFileBase)
+		writeCSV(trfList,outFileBase)
+		writeSQL(trfList,outFileBase)
 		writePeriodFreqs(trfList,outFileBase)
 		writePeriodLengths(trfList,outFileBase)
 		writePeriodTable(trfList,outFileBase)
@@ -165,17 +169,31 @@ def flattenTRFDict(trfDict):
 #	return trf
 #
 
-def writeTRFDict(trfList,outFileBase):#mostly for visualization in R script
-	out = open(outFileBase+'.txt','w')
+def writeCSV(trfList,outFileBase):#mostly for visualization in R script
+	out = open(outFileBase+'.csv','w')
 	motifFreqs = getMotifFreqs(trfList)
 	periodFreqs = getPeriodFreqs(trfList)
-	header = "seq_name\tstart\tend\tperiod\tcopies\tconsensus\t%matches\t%indels\tscore\t%a\t%c\t%g\t%t\tentropy\tlength\tmotif\tmotif_freq\tperiod_freq\n"
+	header = "seq_name,start,end,period,copies,consensus,%matches,%indels,score,%a,%c,%g,%t,entropy,length,motif,motif_freq,period_freq\n"
 	out.write(header)
 	for t in trfList:
 		motifFreq = motifFreqs[t.motif]
 		periodFreq = periodFreqs[t.period]
-		out.write(str(t)+"\t"+str(motifFreq)+"\t"+str(periodFreq)+"\n");
-#		out.write(str(t.test())+"\n")
+		out.write(str(t)+','+str(motifFreq)+','+str(periodFreq)+'\n');
+
+def writeSQL(trfList,outFileBase):
+	table = outFileBase[:outFileBase.find('.')]+'_trf'#tables can't have . in them, quick hack
+	out = open(table+'.dmp','w')
+	motifFreqs = getMotifFreqs(trfList)
+	periodFreqs = getPeriodFreqs(trfList)
+	out.write('BEGIN;\n')
+	out.write('DROP TABLE IF EXISTS `'+table+'`;\n')
+        out.write('CREATE TABLE '+table+'(id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, seq_name VARCHAR(200), start INT, end INT, period INT, copies FLOAT, consensus INT, matches FLOAT,\
+		indels FLOAT, score INT, A FLOAT, C FLOAT, G FLOAT, T FLOAT, entropy FLOAT, motif VARCHAR(2001),len INT, motif_freq INT, period_freq INT);\n')
+	for t in trfList:
+		motifFreq = motifFreqs[t.motif]
+		periodFreq = periodFreqs[t.period]
+		out.write('INSERT INTO '+table+'(seq_name,start,end,period,copies,consensus,matches,indels,score,A,C,G,T,entropy,motif,len,motif_freq,period_freq) VALUES('+str(t)+','+str(motifFreq)+','+str(periodFreq)+');\n')
+	out.write('COMMIT;')
 
 def getPeriodFreqs(trfList):
 	periodDict = defaultdict(int)

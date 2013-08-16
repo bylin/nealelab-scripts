@@ -33,10 +33,10 @@ class trfHit:
 					
 	def __str__(self): 
 		#for printing in mysql format
-		return str(self.seq_name) + "\t" + str(self.start) + "\t" + str(self.end) + "\t" + str(self.period) + "\t" + str(self.copy_num)+ "\t" + \
-		str(self.size_consensus)+ "\t" + str(self.percent_matches) + "\t" + str(self.percent_indels) + "\t" + str(self.score) + "\t" + \
-		str(self.a) + "\t"+ str(self.c) + "\t" + str(self.t) + "\t"+ str(self.g) + "\t" + str(self.entropy) + "\t" + str(self.length)+ \
-		"\t" + self.motif
+		return "'"+str(self.seq_name) + "'," + str(self.start) + "," + str(self.end) + "," + str(self.period) + "," + str(self.copy_num)+ "," + \
+		str(self.size_consensus)+ "," + str(self.percent_matches) + "," + str(self.percent_indels) + "," + str(self.score) + "," + \
+		str(self.a) + ","+ str(self.c) + "," + str(self.t) + ","+ str(self.g) + "," + str(self.entropy) + "," + "'" + str(self.motif)+ "'" + \
+		"," + str(self.length)
 	
 	def __cmp__(self,other):
 		return self.score > other.score #blast score, metric used to compare redundant bp
@@ -48,7 +48,7 @@ class trfHit:
 		return hash(self.sequence)
 	
 	def test(self):
-		return str(self.start)+"\t"+str(self.end)+"\t"+str(self.score)
+		return str(self.start)+","+str(self.end)+","+str(self.score)
 
 class blastHit:
 	def __init__(self, data = []):

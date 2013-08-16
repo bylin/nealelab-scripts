@@ -111,6 +111,11 @@ class Fasta(ExtendedFile):
 		if (mySeq is None): print "Sequence %s not found" % id
 		else: return mySeq
 	
+	def printSeqsWithIds(self,filename):
+		with open(filename) as ids:
+			for id in ids.read().split('\n'):
+				self.createFastaFromRecord(self.getSeqUsingId(id))
+
 	def getSeqUsingName(self, name):
 		mySeq = None
 		for seq in self.seqRecordList():
@@ -250,7 +255,8 @@ def main():
 	#repBase = pickler.getFromPickleJar('repBaseDict.pkl')
 	#print len(repBase) 
 	fasta = Fasta(sys.argv[1])
-	fasta.printSeqsStats()
+	#fasta.printSeqsStats()
+	fasta.printSeqsWithIds(sys.argv[2])
 
 if __name__=="__main__":
 	main()
