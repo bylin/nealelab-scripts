@@ -133,7 +133,7 @@ def classify_GAG(hitList, classifs, currentScore):
 
 def classify_AP(hitList, classifs, currentScore):
 	for hit, i in zip(hitList[1:], range(1, len(hitList))):
-		if hit.start-hitList[0].end > 800:
+		if hit.start-hitList[0].end > 2000:
 			continue
 		if hit.name[0:2] == 'RT':
 			classify_RT(hitList[i:], classifs, hit.score + currentScore)
@@ -144,7 +144,7 @@ def classify_AP(hitList, classifs, currentScore):
 
 def classify_RT(hitList, classifs, currentScore):
 	for hit, i in zip(hitList[1:], range(1, len(hitList))):
-		if hit.start-hitList[0].end > 2000:
+		if hit.start-hitList[0].end > 3000:
 			continue
 		if hit.name[0:2] == 'RH':
 			classify_RH(hitList[i:], classifs, hit.score + currentScore)
@@ -153,14 +153,14 @@ def classify_RT(hitList, classifs, currentScore):
 
 def classify_RH(hitList, classifs, currentScore):
 	for hit, i in zip(hitList[1:], range(1, len(hitList))):
-		if hit.start-hitList[0].end > 2000:
+		if hit.start-hitList[0].end > 1000:
 			continue
 		elif hit.name[0:2] == 'IN':
 			classify_EN(hitList[i:], classifs, hit.score + currentScore)
 
 def classify_EN(hitList, classifs, currentScore):
 	for hit in hitList[1:]:
-		if hit.start-hitList[0].end > 2000:
+		if hit.start-hitList[0].end > 1000:
 			continue
 		if hit.name[0:2] == 'EN':
 			classifs.append(('Gypsy', hit.score + currentScore))
@@ -168,7 +168,7 @@ def classify_EN(hitList, classifs, currentScore):
 
 def classify_INT(hitList, classifs, currentScore):
 	for hit, i in zip(hitList[1:], range(1, len(hitList))):
-		if hit.start-hitList[0].end > 2000:
+		if hit.start-hitList[0].end > 3000:
 			continue
 		elif hit.name[0:2] == 'RT':
 			classify_INT_RT(hitList[i:], classifs, hit.score + currentScore)
@@ -177,7 +177,7 @@ def classify_INT(hitList, classifs, currentScore):
 
 def classify_INT_RT(hitList, classifs, currentScore):
 	for hit in hitList[1:]:
-		if hit.start-hitList[0].end > 2000:
+		if hit.start-hitList[0].end > 1000:
 			continue
 		elif hit.name[0:2] == 'RH':
 			classifs.append(('Copia', hit.score + currentScore))
