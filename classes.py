@@ -74,7 +74,7 @@ class HmmHit(object):
 				return 0
 			elif self.end > other.end:
 				return 1
-			elif seld.end < other.end:
+			elif self.end < other.end:
 				return -1
 		elif self.start > other.start:
 			return 1
