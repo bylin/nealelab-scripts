@@ -44,7 +44,6 @@ def getFileList():
 def addStatsFromFile(stats, fileHandle):
 	infile = open(fileHandle)
 	# need to skip first 3 lines of GFF files
-	for x in range(0,3): infile.readline()
 	# for x in range(0,3): infile.readline()
 	sortedFile = sorted(infile, reverse=True)
 	i = 0
@@ -71,7 +70,6 @@ def parseLineIntoRepeatTuple(line):
 		block = (int(tabs[5]), int(tabs[6]) + 1)
 		if args.full_length:
 			familyLength = tracker.libSeqs[repeatName]
-			percIdentity = 100 - float(tabs[1])
 			percIdentity = 100 - float(tabs[1]) - float(tabs[2]) - float(tabs[3])
 	except:
 		raise

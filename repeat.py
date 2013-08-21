@@ -125,12 +125,14 @@ class WickerRepeat(Repeat):
 			return 'Unknown'
 
 	def determineFamily(self, name):
+<<<<<<< HEAD
 		if re.search('_[A-Z]', name):
+=======
+>>>>>>> blin
 		if re.search('_[A-Z]$', name):
 			return '_'.join(name.split('_')[:-1])
 		return name
 
-# TODO: flesh out class, order, super functions. Repbase can be tricky.
 class PierRepeat(Repeat):
 	
 	def __init__(self, name):
@@ -141,9 +143,6 @@ class PierRepeat(Repeat):
 		self.FAMILY = self.NAME
 
 	def determineSuper(self, annotation):
-		if re.search('ouachita|bastrop|ozark|appalachian|angelina|talladega|ifg7|pprt1|gymny|corky', annotation, re.I):
-			return 'Gypsy'
-		if re.search('cumberland|pineywoods|conagree|tpe1', annotation, re.I):
 		if re.search('ifg7|pprt1|gymny|corky', annotation, re.I):
 			return 'Gypsy'
 		if re.search('tpe1', annotation, re.I):

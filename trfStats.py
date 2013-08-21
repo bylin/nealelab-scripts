@@ -6,7 +6,6 @@ from classes import trfHit
 from collections import defaultdict
 from operator import itemgetter, attrgetter
 
-
 ''' import sys
  import trfStats 
  

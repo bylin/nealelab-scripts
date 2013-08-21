@@ -69,8 +69,6 @@ class HmmHit(object):
 		self.name = name
 		self.score = score
 	def __cmp__(self, other): # for efficient sorting of hits within a raw sequence
-		if self.start == other.start and self.end == other.end:
-			return 0
 		if self.start == other.start:
 			if self.end == other.end:
 				return 0
