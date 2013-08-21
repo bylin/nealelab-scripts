@@ -60,7 +60,7 @@ def parseHmmHits(rawSeqs):
 			orfstart = int(re.findall(':(\d+)-', tabs[-1])[0])
 			#orfstart = int(re.findall(':(\d+)-', tabs[0])[0])
 		except:
-			log("Could not parse line: {}\n".format(line))
+			print "Could not parse line: {}\n".format(line)
 			continue
 		start = int(tabs[19]) * 3 - 2 + orfstart
 		end = int(tabs[20]) * 3 - 5 + orfstart
@@ -68,7 +68,7 @@ def parseHmmHits(rawSeqs):
 		hmmhit = classes.HmmHit(hmmName, start, end, score)
 		try: rawSeqs[rawSeq].addHit(hmmhit)
 		except KeyError:
-			log('{} not in rawSeqs\n'.format(rawSeq))
+			print '{} not in rawSeqs\n'.format(rawSeq)
 
 def examineDomainsAndClassify(rawSeqs):
 	log('Sequence\tOld classification\tNew classification\n', 'results')
