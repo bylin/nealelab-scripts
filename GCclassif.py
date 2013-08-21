@@ -16,18 +16,18 @@ def parseArgs():
 	return parser.parse_args()
 
 def main():
-	log('Start hmmern.py\n', 'log')
+	print 'Start hmmern.py'
 	runHmmer()
-	log('Get raw sequence information\n', 'log')
+	print 'Get raw sequence information'
 	rawSeqs = loadRawSeqs()
 	for seq in Fasta(orfFile):
 		rawSeqs[seq.id.split('|')[0]] = ExtendedSeqRecord(seq)
-	log('Parsing HMMER hits\n', 'log')
+	print 'Parsing HMMER hits'
 	parseHmmHits(rawSeqs)
-	log('Ranking hits and classifying\n', 'log')
+	print 'Ranking hits and classifying'
 	examineDomainsAndClassify(rawSeqs)
 	if not args.keep_temporary_files:
-		log('Cleaning temp files\n', 'log')
+		print 'Cleaning temp files'
 		clean()
 
 def runHmmer():
@@ -84,13 +84,13 @@ def examineDomainsAndClassify(rawSeqs):
 			if classif and old != classif:
 				log('{}\t{}\t{}\t{}\n'.format(xseq, old, classif, score), 'results')
 				nerrors+=1
-				print xseq + '\t' + old + '\t' + classif
-			else:
+				#print xseq + '\t' + old + '\t' + classif
+			elif classif and old == classif:
 				nsuccess+=1
 		except:
 			if classif:
 				log('{}\t{}\n'.format(xseq, classif), 'results')
-			print xseq + '\told\t' + classif
+			#print xseq + '\told\t' + classif
 	print 'errors: {}\nsuccess: {}'.format(nerrors, nsuccess)
 
 def classify(hitList):
@@ -187,13 +187,10 @@ def clean():
 	os.remove(orfFile)
 	os.remove(hmmHitFile)
 	os.remove(evidenceFile)
-	os.remove(logFile)
 
 def log(string, logtype):
 	if logtype == 'evidence' and 'evidenceFileHandle' in globals():
 		evidenceFileHandle.write(string)
-	if logtype == 'log' and 'logFileHandle' in globals():
-		logFileHandle.write(string)
 	if logtype == 'results' and 'resultsFileHandle' in globals():
 		resultsFileHandle.write(string)
 
@@ -204,12 +201,10 @@ if __name__ == '__main__':
 	hmmProfilesForLTRs = '/share/jyllwgrp/nealedata/databases/ltr-Pfam.hmm'
 	targetSeqs = '/share/jyllwgrp/nealedata/databases/pier-1.3.fa'
 	orfFile = args.fasta + '.orfs'
-	logFile = '{}-log.txt'.format(args.job_name)
 	hmmHitFile = '{}-hmmer-output.txt'.format(args.job_name)
 	evidenceFile = '{}-evidence.txt'.format(args.job_name)
 	resultsFile = '{}-results.txt'.format(args.job_name)
 	evidenceFileHandle = open(evidenceFile, 'w')
 	resultsFileHandle = open(resultsFile, 'w')
-	logFileHandle = open(logFile, 'w')
 	main()
 	
