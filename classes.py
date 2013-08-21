@@ -71,6 +71,13 @@ class HmmHit(object):
 	def __cmp__(self, other): # for efficient sorting of hits within a raw sequence
 		if self.start == other.start and self.end == other.end:
 			return 0
+		if self.start == other.start:
+			if self.end == other.end:
+				return 0
+			elif self.end > other.end:
+				return 1
+			elif self.end < other.end:
+				return -1
 		elif self.start > other.start:
 			return 1
 		else: return -1

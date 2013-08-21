@@ -126,6 +126,7 @@ class WickerRepeat(Repeat):
 
 	def determineFamily(self, name):
 		if re.search('_[A-Z]', name):
+		if re.search('_[A-Z]$', name):
 			return '_'.join(name.split('_')[:-1])
 		return name
 
@@ -143,6 +144,9 @@ class PierRepeat(Repeat):
 		if re.search('ouachita|bastrop|ozark|appalachian|angelina|talladega|ifg7|pprt1|gymny|corky', annotation, re.I):
 			return 'Gypsy'
 		if re.search('cumberland|pineywoods|conagree|tpe1', annotation, re.I):
+		if re.search('ifg7|pprt1|gymny|corky', annotation, re.I):
+			return 'Gypsy'
+		if re.search('tpe1', annotation, re.I):
 			return 'Copia'
 		return 'Unknown'
 
