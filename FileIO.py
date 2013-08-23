@@ -108,7 +108,12 @@ class Fasta(ExtendedFile):
 			
 	def printAvgGCcontent(self):
 		print 'Average GC content:\t{:.2f}%'.format(self.getAvgGCcontent())
-		
+	
+	def printMultiGC(self):
+		for seq in self.seqRecordList():
+			print '{:s}\t{:.2f}'.format(seq.id,GC(seq.seq))
+		self.resetFilePointer()
+	
 	def getAvgGCcontent(self):
 		gc = sum(GC(seq.seq) for seq in self.seqs())
 		self.resetFilePointer()
@@ -123,6 +128,11 @@ class Fasta(ExtendedFile):
 		if (mySeq is None): print "Sequence %s not found" % id
 		else: return mySeq
 	
+	def printSeqsWithIds(self,filename):
+		with open(filename) as ids:
+			for id in ids.read().split('\n'):
+				self.createFastaFromRecord(self.getSeqUsingId(id))
+
 	def getSeqUsingName(self, name):
 		mySeq = None
 		for seq in self.seqs():
@@ -263,8 +273,8 @@ def main():
 	#pickler.sendToPickleJar(repBase,'repBaseDict.pkl')
 	#repBase = pickler.getFromPickleJar('repBaseDict.pkl')
 	#print len(repBase) 
-	#fasta = ExtendedFastaFile(sys.argv[1])
-	#fasta.printSeqsStats()
+	fasta = Fasta(sys.argv[1])
+	fasta.printSeqsStats()
 	return
 
 if __name__=="__main__":

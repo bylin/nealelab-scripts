@@ -18,7 +18,7 @@ class trfHit:
 		self.end = int(Data[2])
 		self.period = int(Data[3])#Period size of the repeat
 		self.copy_num = float(Data[4])#Number of copies aligned with the consensus pattern
-		self.size_of_copy = int(Data[5])#Size of consensus pattern (may differ slightly from the period size)
+		self.size_consensus = int(Data[5])#Size of consensus pattern (may differ slightly from the period size)
 		self.percent_matches = float(Data[6])#Percent of matches between adjacent copies overall
 		self.percent_indels = float(Data[7])#Percent of indels between adjacent copies overall
 		self.score = int(Data[8])#Alignment score
@@ -32,15 +32,22 @@ class trfHit:
 					
 	def __str__(self): 
 		#for printing in mysql format
-		return "'" + str(self.seq_name) + "'," + str(self.start) + "," + str(self.end) + ","	+ str(self.period) + "," + str(self.copy_num)+ ",'" + str(self.sequence)+ "'," + str(self.length)
+		return "'"+str(self.seq_name) + "'," + str(self.start) + "," + str(self.end) + "," + str(self.period) + "," + str(self.copy_num)+ "," + \
+		str(self.size_consensus)+ "," + str(self.percent_matches) + "," + str(self.percent_indels) + "," + str(self.score) + "," + \
+		str(self.a) + ","+ str(self.c) + "," + str(self.t) + ","+ str(self.g) + "," + str(self.entropy) + "," + "'" + str(self.motif)+ "'" + \
+		"," + str(self.length)
 	
 	def __cmp__(self,other):
 		return self.score > other.score #blast score, metric used to compare redundant bp
+
 	def __eq__(self,other):
 		return self.seq_name == other.seq_name
 
 	def __hash__(self):
 		return hash(self.sequence)
+	
+	def test(self):
+		return str(self.start)+","+str(self.end)+","+str(self.score)
 
 class BlastHit(object):
 	def __init__(self, data = []):

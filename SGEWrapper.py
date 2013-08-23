@@ -3,8 +3,6 @@
 # SGE wrapper. Generates a helper file and runs it.
 
 import subprocess, argparse, os, textwrap, datetime, shutil
-global timestamp
-timestamp = 'run-'+datetime.datetime.today().strftime("%a-%b-%d-%Y-%H%M%S")
 
 def main():
 	args = parseArgs()
@@ -35,6 +33,9 @@ def parseArgs():
 	return argParser.parse_args()
 
 def setUpEnv(args):
+	name = ''
+	if args.name: name = args.name
+	timestamp = 'run-'+datetime.datetime.today().strftime("%a-%b-%d-%Y-%H%M%S")+"-"+name
 	if os.path.exists(timestamp): shutil.rmtree(timestamp)
 	os.mkdir(timestamp)
 	os.chdir(timestamp)
