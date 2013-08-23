@@ -125,10 +125,6 @@ class WickerRepeat(Repeat):
 			return 'Unknown'
 
 	def determineFamily(self, name):
-<<<<<<< HEAD
-		if re.search('_[A-Z]', name):
-=======
->>>>>>> blin
 		if re.search('_[A-Z]$', name):
 			return '_'.join(name.split('_')[:-1])
 		return name
