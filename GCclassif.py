@@ -53,27 +53,37 @@ def parseHmmHits(rawSeqs):
 	for line in open(hmmHitFile):
 		tabs = re.findall('\S+', line)
 		if tabs[0][0] == '#': continue
-		rawSeq = tabs[0]
-		#rawSeq = tabs[0].split('|')[0]
-		hmmName = tabs[3]
-		try: 
-			orfstart = int(re.findall(':(\d+)-', tabs[-1])[0])
-			#orfstart = int(re.findall(':(\d+)-', tabs[0])[0])
-		except:
-			log("Could not parse line: {}\n".format(line))
+		try:
+			rawSeq, orfstart = splice(tabs, rawSeqs)
+		except Exception as e:
+			print e
+			print "Could not parse line: {}".format(line)
 			continue
+		hmmName = tabs[3]
 		start = int(tabs[19]) * 3 - 2 + orfstart
 		end = int(tabs[20]) * 3 - 5 + orfstart
 		score = float(tabs[13])
 		hmmhit = classes.HmmHit(hmmName, start, end, score)
 		try: rawSeqs[rawSeq].addHit(hmmhit)
 		except KeyError:
-			log('{} not in rawSeqs\n'.format(rawSeq))
+			print '{} not in rawSeqs\n'.format(rawSeq)
+
+def splice(tabs, rawSeqs):
+	rawSeq = tabs[0]
+	if rawSeq not in rawSeqs:
+		rawSeq = tabs[0].split('|')[0]
+		try: orfstart = int(re.findall(':(\d+)-', tabs[0])[0])
+		except: raise
+		return rawSeq, orfstart
+	try: orfstart = int(re.findall(':(\d+)-', tabs[-1])[0])
+	except: raise
+	return rawSeq
 
 def examineDomainsAndClassify(rawSeqs):
 	log('Sequence\tOld classification\tNew classification\n', 'results')
 	nerrors = 0
 	nsuccess = 0
+	ngoodnocalls = 0
 	for xseq in rawSeqs:
 		if len(rawSeqs[xseq].hits) == 0:
 			continue
@@ -83,15 +93,19 @@ def examineDomainsAndClassify(rawSeqs):
 			old = rawSeqs[xseq].seq.description.split('\t')[1]
 			if classif and old != classif:
 				log('{}\t{}\t{}\t{}\n'.format(xseq, old, classif, score), 'results')
-				nerrors+=1
-				#print xseq + '\t' + old + '\t' + classif
-			elif classif and old == classif:
-				nsuccess+=1
+				if (old == 'Gypsy' and classif == 'Copia') or (old == 'Copia' and classif == 'Gypsy'):
+					nerrors+=1
+					#print xseq + '\t' + old + '\t' + classif
+			elif classif and classif == old:
+				if classif == 'Gypsy' or classif == 'Copia':
+					nsuccess+=1
+				else:
+					ngoodnocalls+=1
 		except:
 			if classif:
-				log('{}\t{}\n'.format(xseq, classif), 'results')
+				log('{}\tNone\t{}\n'.format(xseq, classif), 'results')
 			#print xseq + '\told\t' + classif
-	print 'errors: {}\nsuccess: {}'.format(nerrors, nsuccess)
+	print 'errors: {}\nsuccess: {}\nngoodnocalls: {}\n'.format(nerrors, nsuccess, ngoodnocalls)
 
 def classify(hitList):
 	classifs = []
