@@ -56,8 +56,7 @@ def parseHmmHits(rawSeqs):
 		try:
 			rawSeq, orfstart = splice(tabs, rawSeqs)
 		except Exception as e:
-			print e
-			print "Could not parse line: {}".format(line)
+			print e, "Could not parse line: {}".format(line)
 			continue
 		hmmName = tabs[3]
 		start = int(tabs[19]) * 3 - 2 + orfstart
