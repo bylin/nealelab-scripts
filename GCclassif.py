@@ -74,6 +74,7 @@ def examineDomainsAndClassify(rawSeqs):
 	log('Sequence\tOld classification\tNew classification\n', 'results')
 	nerrors = 0
 	nsuccess = 0
+	ngoodnocalls = 0
 	for xseq in rawSeqs:
 		if len(rawSeqs[xseq].hits) == 0:
 			continue
@@ -83,15 +84,19 @@ def examineDomainsAndClassify(rawSeqs):
 			old = rawSeqs[xseq].seq.description.split('\t')[1]
 			if classif and old != classif:
 				log('{}\t{}\t{}\t{}\n'.format(xseq, old, classif, score), 'results')
-				nerrors+=1
-				#print xseq + '\t' + old + '\t' + classif
-			elif classif and old == classif:
-				nsuccess+=1
+				if (old == 'Gypsy' and classif == 'Copia') or (old == 'Copia' and classif == 'Gypsy'):
+					nerrors+=1
+					#print xseq + '\t' + old + '\t' + classif
+			elif classif and classif == old:
+				if classif == 'Gypsy' or classif == 'Copia':
+					nsuccess+=1
+				else:
+					ngoodnocalls+=1
 		except:
 			if classif:
 				log('{}\t{}\n'.format(xseq, classif), 'results')
 			#print xseq + '\told\t' + classif
-	print 'errors: {}\nsuccess: {}'.format(nerrors, nsuccess)
+	print 'errors: {}\nsuccess: {}\nngoodnocalls: {}\n'.format(nerrors, nsuccess, ngoodnocalls)
 
 def classify(hitList):
 	classifs = []
