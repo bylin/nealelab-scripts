@@ -53,15 +53,12 @@ def parseHmmHits(rawSeqs):
 	for line in open(hmmHitFile):
 		tabs = re.findall('\S+', line)
 		if tabs[0][0] == '#': continue
-		rawSeq = tabs[0]
-		#rawSeq = tabs[0].split('|')[0]
-		hmmName = tabs[3]
-		try: 
-			orfstart = int(re.findall(':(\d+)-', tabs[-1])[0])
-			#orfstart = int(re.findall(':(\d+)-', tabs[0])[0])
-		except:
-			print "Could not parse line: {}\n".format(line)
+		try:
+			rawSeq, orfstart = splice(tabs, rawSeqs)
+		except Exception as e:
+			print e, "Could not parse line: {}".format(line)
 			continue
+		hmmName = tabs[3]
 		start = int(tabs[19]) * 3 - 2 + orfstart
 		end = int(tabs[20]) * 3 - 5 + orfstart
 		score = float(tabs[13])
@@ -69,6 +66,17 @@ def parseHmmHits(rawSeqs):
 		try: rawSeqs[rawSeq].addHit(hmmhit)
 		except KeyError:
 			print '{} not in rawSeqs\n'.format(rawSeq)
+
+def splice(tabs, rawSeqs):
+	rawSeq = tabs[0]
+	if rawSeq not in rawSeqs:
+		rawSeq = tabs[0].split('|')[0]
+		try: orfstart = int(re.findall(':(\d+)-', tabs[0])[0])
+		except: raise
+		return rawSeq, orfstart
+	try: orfstart = int(re.findall(':(\d+)-', tabs[-1])[0])
+	except: raise
+	return rawSeq
 
 def examineDomainsAndClassify(rawSeqs):
 	log('Sequence\tOld classification\tNew classification\n', 'results')
@@ -94,7 +102,7 @@ def examineDomainsAndClassify(rawSeqs):
 					ngoodnocalls+=1
 		except:
 			if classif:
-				log('{}\t{}\n'.format(xseq, classif), 'results')
+				log('{}\tNone\t{}\n'.format(xseq, classif), 'results')
 			#print xseq + '\told\t' + classif
 	print 'errors: {}\nsuccess: {}\nngoodnocalls: {}\n'.format(nerrors, nsuccess, ngoodnocalls)
 
