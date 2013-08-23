@@ -96,7 +96,12 @@ class Fasta(ExtendedFile):
 			
 	def printAvgGCcontent(self):
 		print 'Average GC content:\t{:.2f}%'.format(self.getAvgGCcontent())
-		
+	
+	def printMultiGC(self):
+		for seq in self.seqRecordList():
+			print '{:s}\t{:.2f}'.format(seq.id,GC(seq.seq))
+		self.resetFilePointer()
+	
 	def getAvgGCcontent(self):
 		gc = sum(GC(seq.seq) for seq in self.seqRecordList())
 		self.resetFilePointer()
@@ -256,7 +261,8 @@ def main():
 	#print len(repBase) 
 	fasta = Fasta(sys.argv[1])
 	#fasta.printSeqsStats()
-	fasta.printSeqsWithIds(sys.argv[2])
+	fasta.printMultiGC()
+	#fasta.printSeqsWithIds(sys.argv[2])
 
 if __name__=="__main__":
 	main()

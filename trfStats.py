@@ -173,7 +173,7 @@ def writeCSV(trfList,outFileBase):#mostly for visualization in R script
 	out = open(outFileBase+'.csv','w')
 	motifFreqs = getMotifFreqs(trfList)
 	periodFreqs = getPeriodFreqs(trfList)
-	header = "seq_name,start,end,period,copies,consensus,%matches,%indels,score,%a,%c,%g,%t,entropy,length,motif,motif_freq,period_freq\n"
+	header = "seq_name,start,end,period,copies,consensus,%matches,%indels,score,%a,%c,%g,%t,entropy,motif,length,motif_freq,period_freq\n"
 	out.write(header)
 	for t in trfList:
 		motifFreq = motifFreqs[t.motif]
