@@ -12,12 +12,15 @@ import re
 
 class Repeat(object):
 
-	def __init__(self, code, name):
+	def __init__(self, code, name, family='__SENTINEL__'):
 		self.NAME = name
 		self.CLASS = self.determineClass(code)
 		self.ORDER = self.determineOrder(code)
 		self.SUPER = self.determineSuper(code)
-		self.FAMILY = self.determineFamily(name)
+		if family == '__SENTINEL__':
+			self.FAMILY = self.determineFamily(name)
+		else:
+			self.FAMILY = family
 	
 	def SOClassif(self):
 		if self.ORDER is not None:
@@ -43,7 +46,7 @@ class Repeat(object):
 		return 'transposable_element'	
 
 	def __str__(self):#for debug
-		return '{:s}: {:s}, {:s}, {:s}, {:s}\n'.format(self.NAME, self.CLASS, self.ORDER, self.SUPER, self.FAMILY)
+		return '{:s}: {:s}, {:s}, {:s}, {:s}'.format(self.NAME, self.CLASS, self.ORDER, self.SUPER, self.FAMILY)
 
 	def __eq__(self, other):
 		return self.name == other
@@ -83,7 +86,37 @@ def conversion(r1): #TEMPORARY, SHOULD BE DEPRECATED SOON
 	r2 = RepbaseRepeat(r1.name, r1.accession, r1.superfamily, r1.order, r1._class, r1.species, r1.length)
 	return r2
 
-class WickerRepeat(Repeat):
+def convertToWicker(repeat):
+	if repeat.CLASS == 'I':
+		if repeat.ORDER == 'Unknown': code = 'RXX'
+		elif repeat.ORDER == 'LTR':
+			if repeat.SUPER == 'Gypsy': code = 'RLG'
+			elif repeat.SUPER == 'Copia': code = 'RLC'
+			else: code = 'RLX'
+		elif repeat.ORDER == 'LINE':
+			if repeat.SUPER == 'L1': code = 'RIL'
+			else: code = 'RIX'
+		elif repeat.ORDER == 'SINE': code = 'RSX'
+		elif repeat.ORDER == 'Penelope': code = 'RPX'
+		else: code = 'RXX'
+	elif repeat.CLASS == 'II':
+		if repeat.ORDER == 'Unknown': code = 'DXX'
+		elif repeat.ORDER == 'TIR':
+			if repeat.SUPER == 'Mariner/Tc1': code = 'DTT'
+			elif repeat.SUPER == 'Harbinger': code = 'DTH'
+			elif repeat.SUPER == 'MuDR': code = 'DTM'
+			elif repeat.SUPER == 'P': code = 'DTP'
+			elif repeat.SUPER == 'piggyBac': code = 'DTB'
+			else: code = 'DTX'
+		elif repeat.ORDER == 'Crypton': code = 'DYC'
+		elif repeat.ORDER == 'Helitron': code = 'DHH'
+		else: code = 'DXX'
+	else: code = 'NoCat'
+	repeat.NAME = '{}_{}'.format(code, repeat.NAME)
+	return repeat
+		
+
+class PierRepeat(Repeat):
 	# Example: myRepeat = WickerRepeat('RLX')
 	
 	def determineClass(self, code):
@@ -91,7 +124,7 @@ class WickerRepeat(Repeat):
 		if myClass == 'R': return 'I'
 		elif myClass == 'D': return 'II'
 		elif myClass == 'X': return 'Confused'
-		elif code in ['PotentialHostGene', 'NoCat', 'SSR', 'rDNA']: return code
+		elif code in ['PotentialHostGene', 'NoCat', 'SSR', 'RDNA']: return code
 		else:
 			exit("Unhandled case: " + code)
 	
@@ -128,28 +161,6 @@ class WickerRepeat(Repeat):
 		if re.search('_[A-Z]$', name):
 			return '_'.join(name.split('_')[:-1])
 		return name
-
-class PierRepeat(Repeat):
-	
-	def __init__(self, name):
-		self.NAME = self.determineFamily(name)
-		self.CLASS = 'I'
-		self.ORDER = 'LTR'
-		self.SUPER = self.determineSuper(name)
-		self.FAMILY = self.NAME
-
-	def determineSuper(self, annotation):
-		if re.search('ifg7|pprt1|gymny|corky', annotation, re.I):
-			return 'Gypsy'
-		if re.search('tpe1', annotation, re.I):
-			return 'Copia'
-		return 'Unknown'
-
-	def determineFamily(self, name): #truncate subfamily
-		if len(name.split('_')) > 1:
-			return '_'.join(name.split('_')[:-1])
-		else:
-			return name
 
 class RepeatGroupStats(object):
 

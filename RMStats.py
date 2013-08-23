@@ -83,16 +83,21 @@ def parseLineIntoRepeatTuple(line):
 # check if re.match is faster than array matching
 def buildRepeatFromName(repeatName):
 	# if not a Wicker annotation: use PierRepeat().
-	isWicker = repeatName[0:2] == 'Pt' and (repeatName[5] == '_' or (len(repeatName) > 5 and (repeatName[2:6] in ['NoCa', 'Pote', 'RDNA'] or repeatName[2:5] == 'SSR')))
-	matcher = RepbaseMatcher()
-	if isWicker:
+	#isWicker = repeatName[0:2] == 'Pt' and (repeatName[5] == '_' or (len(repeatName) > 5 and (repeatName[2:6] in ['NoCa', 'Pote', 'RDNA'] or repeatName[2:5] == 'SSR')))
+	#matcher = RepbaseMatcher()
+	if repeatName[0:2] == 'Pt':
 		code = repeatName[2:].split('_')[0]
-		repeat = classes.WickerRepeat(code, repeatName)
-	elif matcher.isRepbaseRepeat(repeatName):
-		rawRepeat = matcher.match(repeatName)
-		repeat = classes.conversion(rawRepeat)
+		repeat = classes.PierRepeat(code, repeatName) # pass Pt elements as family name (default)
 	else:
-		repeat = classes.PierRepeat(repeatName)
+		code = repeatName.split('_')[0]
+		repeatName = '_'.join(repeatName.split('_')[1:])
+		familyName = repeatName
+		repeat = classes.PierRepeat(code, repeatName, familyName) # pass Repbase elements as their original name
+	#elif matcher.isRepbaseRepeat(repeatName):
+	#	rawRepeat = matcher.match(repeatName)
+	#	repeat = classes.conversion(rawRepeat)
+	#else:
+	#	repeat = classes.PierRepeat(repeatName)
 	return repeat
 
 class RepbaseMatcher(object):
