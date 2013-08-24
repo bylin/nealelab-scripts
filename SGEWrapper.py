@@ -7,6 +7,7 @@ import subprocess, argparse, os, textwrap, datetime, shutil
 def main():
 	args = parseArgs()
 	setUpEnv(args)
+	generateQsubScript(args)
 	cmd = 'qsub '+getScriptName(args)
 	subprocess.call(cmd, shell=True)
 
@@ -29,6 +30,7 @@ def parseArgs():
 	argParser.add_argument('-e', '--stderr',  help='Standard error file', default='SGEWrapper.stderr')
 	argParser.add_argument('-N', '--name',  help='Job name', default='SGEWrapper')
 	argParser.add_argument('-M', '--email', help='Email account user wishes to send job start and end notifications to')
+	argParser.add_argument('-r', '--reverse_order', help='Process files in reverse order. Useful for when dealing with more fragmented data first.', action='store_true')
 	argParser.add_argument('-cmd', '--command',  required=True, help='Command to qsub')
 	return argParser.parse_args()
 
@@ -40,7 +42,6 @@ def setUpEnv(args):
 	os.mkdir(timestamp)
 	os.chdir(timestamp)
 	copyExtraFiles(args)
-	generateQsubScript(args)
 
 def copyExtraFiles(args):
 	if args.extra_files is not None: 
@@ -92,7 +93,10 @@ def generateQsubSingleJobScript(args):
 
 def scanInputs(args):
 	inputFile = getName(args)+'InputFiles.txt'
-	cmd = 'ls ../' + args.input_directory + '/* > ' + inputFile
+	cmd = 'ls '
+	if args.reverse_order:
+		cmd += '-r '
+	cmd += '../' + args.input_directory + '/* > ' + inputFile
 	proc = subprocess.call(cmd, shell=True)
 	lineCounter = 0
 	inputFileHandle = open(inputFile)
@@ -147,7 +151,7 @@ def addMaxRunningTasks(args):
 
 def addModules(args):
 	script = ""
-	if args.modules is not  None:
+	if args.modules is not None:
 		script += 'module load '+ ' '.join(args.modules)+'\n' 
 	return script
 
